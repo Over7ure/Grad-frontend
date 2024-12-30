@@ -83,10 +83,10 @@
 
         <!-- Search Inputs -->
         <div class="search-container">
-          <el-input v-model="username" :suffix-icon="Search" class="search-input" placeholder="请输入名称"></el-input>
-          <el-input :suffix-icon="Message" class="search-input ml-5" placeholder="请输入邮箱"></el-input>
-          <el-input :suffix-icon="Position" class="search-input ml-5" placeholder="请输入地址"></el-input>
-          <el-button :icon="Search" class="search-button ml-5" type="primary" @click="load">搜索</el-button>
+          <el-input v-model="username" :suffix-icon="Search" class="search-input" placeholder="请输入名称" clearable></el-input>
+<!--          <el-input :suffix-icon="Message" class="search-input" placeholder="请输入邮箱" clearable></el-input>-->
+<!--          <el-input :suffix-icon="Position" class="search-input" placeholder="请输入地址" clearable></el-input>-->
+          <el-button :icon="Search" class="search-button" type="primary" @click="load">搜索</el-button>
         </div>
 
         <!-- Action Buttons -->
@@ -132,18 +132,8 @@
 </template>
 
 <script>
-import {
-  ArrowDown,
-  Bottom,
-  CirclePlus,
-  Edit,
-  Menu,
-  Message,
-  Position,
-  Remove,
-  Search,
-  Top
-} from "@element-plus/icons-vue";
+import axios from "axios";
+import {ArrowDown, Bottom, CirclePlus, Edit, Menu, Message, Position, Remove, Search, Top, Fold, Expand} from "@element-plus/icons-vue";
 
 const debounce = (fn, delay) => {
   let timer = null;
@@ -192,7 +182,7 @@ export default {
       return Search
     }
   },
-  components: {ArrowDown, Menu},
+  components: {ArrowDown, Menu, Expand, Fold},
   data() {
     return {
       tableData: [],
@@ -221,11 +211,18 @@ export default {
       }
     },
     load() {
-      fetch("http://localhost:9090/user/findPage?pageNum=" + this.pageNum + "&pageSize=" + this.pageSize + "&username=" + this.username)
-          .then(res => res.json()).then(res => {
-        console.log(res)
-        this.tableData = res.data
-        this.total = res.total
+      axios.get(`http://localhost:9090/user/findPage`, {
+        params: {
+          pageNum: this.pageNum,
+          pageSize: this.pageSize,
+          username: this.username
+        }
+      }).then(res => {
+        console.log(res.data)
+        this.tableData = res.data.data
+        this.total = res.data.total
+      }).catch(error => {
+        console.error(error)
       })
     },
     handleSizeChange(pageSize) {
@@ -243,24 +240,6 @@ export default {
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.ml-5 {
-  margin-left: 5px;
-}
-
-.mr-5 {
-  margin-right: 5px;
-}
-
-.pd-10 {
-  padding: 10px 0;
-}
-
 .user-list-container {
   min-height: 100vh;
 }
@@ -328,6 +307,7 @@ export default {
 }
 
 .search-input {
+  margin-left: 5px;
   width: 200px;
 }
 
