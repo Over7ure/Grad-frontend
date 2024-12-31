@@ -58,7 +58,7 @@
         </div>
         <el-dropdown class="user-dropdown">
           <span class="user-dropdown-trigger">
-            王宸玮
+            {{ loginUser }}
             <el-icon>
               <ArrowDown/>
             </el-icon>
@@ -83,9 +83,10 @@
 
         <!-- Search Inputs -->
         <div class="search-container">
-          <el-input v-model="username" :suffix-icon="Search" class="search-input" placeholder="请输入名称" clearable></el-input>
-<!--          <el-input :suffix-icon="Message" class="search-input" placeholder="请输入邮箱" clearable></el-input>-->
-<!--          <el-input :suffix-icon="Position" class="search-input" placeholder="请输入地址" clearable></el-input>-->
+          <el-input v-model="username" :suffix-icon="Search" class="search-input" clearable
+                    placeholder="请输入名称"></el-input>
+          <!--          <el-input :suffix-icon="Message" class="search-input" placeholder="请输入邮箱" clearable></el-input>-->
+          <!--          <el-input :suffix-icon="Position" class="search-input" placeholder="请输入地址" clearable></el-input>-->
           <el-button :icon="Search" class="search-button" type="primary" @click="load">搜索</el-button>
         </div>
 
@@ -133,7 +134,20 @@
 
 <script>
 import axios from "axios";
-import {ArrowDown, Bottom, CirclePlus, Edit, Menu, Message, Position, Remove, Search, Top, Fold, Expand} from "@element-plus/icons-vue";
+import {
+  ArrowDown,
+  Bottom,
+  CirclePlus,
+  Edit,
+  Expand,
+  Fold,
+  Menu,
+  Message,
+  Position,
+  Remove,
+  Search,
+  Top
+} from "@element-plus/icons-vue";
 
 const debounce = (fn, delay) => {
   let timer = null;
@@ -189,7 +203,8 @@ export default {
       total: 0,
       pageNum: 1,
       pageSize: 6,
-      username: "",
+      username: '',
+      loginUser: localStorage.getItem('loginUser'),
       isCollapse: false,
       sideWidth: 200,
       logoTextShow: true,
@@ -211,7 +226,7 @@ export default {
       }
     },
     load() {
-      axios.get(`http://localhost:9090/user/findPage`, {
+      axios.get(`http://localhost:9090/api/user/findPage`, {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
