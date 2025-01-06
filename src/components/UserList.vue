@@ -204,7 +204,7 @@ export default {
       pageNum: 1,
       pageSize: 6,
       username: '',
-      loginUser: localStorage.getItem('loginUser'),
+      loginUser: localStorage.getItem('user' || '[]') == null ? '' : JSON.parse(window.localStorage.getItem('user' || '[]')).username,
       isCollapse: false,
       sideWidth: 200,
       logoTextShow: true,
@@ -351,4 +351,5 @@ export default {
   justify-content: center;
   align-items: center;
 }
+
 </style>
