@@ -1,29 +1,25 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import MyHome from "@/components/Home.vue";
-import HelloWorld from "@/components/HelloWorld.vue";
-import UserList from "@/components/UserList.vue";
-import UserLogin from "@/components/Login.vue";
 
 const routes = [
 	{
 		path: '/home',
 		name: 'Home',
-		component: MyHome,
+		component: () => import('@/components/Home.vue'),
 		redirect: '/index',
 		children: [
 			{
 				path: '/index',
 				name: 'AppIndex',
-				component: HelloWorld,
+				component: () => import('@/components/HelloWorld.vue'),
 				props: {msg: 'Hello World'},
 				meta: {
 					requireAuth: true
 				}
 			},
 			{
-				path: '/users',
+				path: '/userList',
 				name: 'UserList',
-				component: UserList,
+				component: () => import('@/components/UserList.vue'),
 				meta: {
 					requireAuth: true
 				}
@@ -33,7 +29,7 @@ const routes = [
 	{
 		path: '/login',
 		name: 'Login',
-		component: UserLogin
+		component: () => import('@/components/Login.vue')
 	}
 ]
 

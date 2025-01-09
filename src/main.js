@@ -6,6 +6,21 @@ import ElementUI from 'element-plus'
 import 'element-plus/theme-chalk/index.css'
 import './assets/global.css'
 
+const debounce = (fn, delay) => {
+	let timer = null;
+	return function (...args) {
+		clearTimeout(timer);
+		timer = setTimeout(() => fn.apply(this, args), delay);
+	};
+};
+
+const _ResizeObserver = window.ResizeObserver;
+window.ResizeObserver = class extends _ResizeObserver {
+	constructor(callback) {
+		super(debounce(callback, 16));
+	}
+};
+
 const app = createApp(App)
 
 app.config.productionTip = false
