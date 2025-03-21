@@ -1,13 +1,4 @@
 <template>
-
-  <!-- Breadcrumb -->
-  <div class="breadcrumb-container">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/users' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-    </el-breadcrumb>
-  </div>
-
   <!-- Search Inputs -->
   <div class="search-container">
     <el-input v-model="username" :prefix-icon="Search" class="search-input" clearable
@@ -25,13 +16,26 @@
 
   <!-- Table -->
   <el-table :data="tableData" :header-cell-class-name="headerBg" border stripe>
-    <el-table-column label="ID" prop="id" width="80"></el-table-column>
+    <el-table-column label="ID" prop="uid" width="80"></el-table-column>
     <el-table-column label="用户名" prop="username" width="140"></el-table-column>
     <el-table-column label="密码" prop="password" width="140"></el-table-column>
     <el-table-column label="邮箱" prop="email"></el-table-column>
-    <el-table-column label="地址" prop="address"></el-table-column>
-    <el-table-column label="创建时间" prop="createTime"></el-table-column>
-    <el-table-column label="用户身份" prop="role"></el-table-column>
+    <el-table-column label="文件数" prop="fileNum"></el-table-column>
+    <el-table-column label="创建时间" prop="createDate"></el-table-column>
+    <el-table-column label="用户身份" prop="role">
+      <template v-slot="scope">
+        <span v-if="scope.row.role === 0">管理员</span>
+        <span v-else-if="scope.row.role === 1">用户</span>
+        <span v-else>{{ scope.row.role }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column label="是否禁用" prop="isDisable">
+      <template v-slot="scope">
+        <span v-if="scope.row.isDisable === 0">否</span>
+        <span v-else-if="scope.row.isDisable === 1">是</span>
+        <span v-else>{{ scope.row.isDisable }}</span>
+      </template>
+    </el-table-column>
     <el-table-column align="center" label="操作" width="200">
       <template v-slot>
         <el-button :icon="Edit" type="success">编辑</el-button>
@@ -124,10 +128,6 @@ export default {
 </script>
 
 <style scoped>
-.breadcrumb-container {
-  margin-bottom: 30px;
-}
-
 .search-container {
   margin: 10px 0;
 }
@@ -154,3 +154,4 @@ export default {
   color: grey;
 }
 </style>
+

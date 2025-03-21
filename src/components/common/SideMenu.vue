@@ -11,38 +11,38 @@
              text-color="#fff">
       <div class="logo-container">
         <img alt="" class="logo-image" src="@/assets/logo.png">
-        <b v-show="logoTextShow" class="logo-text">*****系统</b>
+        <b v-show="logoTextShow" class="logo-text">缺陷甄别系统</b>
       </div>
-      <el-sub-menu index="userManagement">
+      <el-sub-menu index="1">
         <template v-slot:title>
           <el-icon>
             <Menu/>
           </el-icon>
-          <span>用户管理</span>
+          <span>图像采集与传输</span>
         </template>
-        <el-menu-item index="/userList">用户信息</el-menu-item>
-        <el-menu-item index="/index">选项2</el-menu-item>
+        <el-menu-item index="1-1">图像上传</el-menu-item>
+        <el-menu-item index="1-2">实时数据采集</el-menu-item>
+        <el-menu-item index="/userList">用户管理</el-menu-item>
       </el-sub-menu>
       <el-sub-menu index="2">
         <template v-slot:title>
           <el-icon>
             <Menu/>
           </el-icon>
-          <span>导航二</span>
+          <span>产品缺陷甄别</span>
         </template>
-        <el-sub-menu index="2-1">
-          <template v-slot:title>选项1</template>
-          <el-menu-item index="2-1-1">选项1-1</el-menu-item>
-        </el-sub-menu>
+        <el-menu-item index="2-1">缺陷检查</el-menu-item>
+        <el-menu-item index="2-2">检查结果</el-menu-item>
       </el-sub-menu>
       <el-sub-menu index="3">
         <template v-slot:title>
           <el-icon>
             <Menu/>
           </el-icon>
-          <span>导航三</span>
+          <span>模型管理</span>
         </template>
-        <el-menu-item index="3-1">选项1</el-menu-item>
+        <el-menu-item index="3-1">算法模型管理</el-menu-item>
+        <el-menu-item index="3-2">权重文件管理</el-menu-item>
       </el-sub-menu>
     </el-menu>
   </el-aside>

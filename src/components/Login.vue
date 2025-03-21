@@ -12,6 +12,9 @@
     <el-form-item style="width: 100%">
       <el-button style="width: 100%" type="primary" @click="handleLogin">Login</el-button>
     </el-form-item>
+    <el-form-item style="width: 100%; text-align: center;">
+      <span class="register-link" @click="navigateToRegister">Don't have an account? <span class="register-text">Register</span></span>
+    </el-form-item>
   </el-form>
   </body>
 </template>
@@ -56,6 +59,9 @@ export default {
     clearForm() {
       this.loginForm.username = '';
       this.loginForm.password = '';
+    },
+    navigateToRegister() {
+      this.$router.push('/register');
     }
   }
 };
@@ -64,20 +70,20 @@ export default {
 <style scoped>
 .background {
   margin: 0;
-  background: url("@/assets/background.jpeg") no-repeat center;
   height: 100%;
   width: 100%;
   background-size: cover;
   position: fixed;
+  background-color: #f0f0f0; /* Fallback background color */
+  background-image: url('@/assets/background.png');
 }
 
 .login-container {
   border-radius: 15px;
-  background-clip: padding-box;
   margin: 100px auto;
   width: 350px;
   padding: 35px 35px 15px 35px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.9); /* Make background slightly transparent */
   border: 1px solid #eaeaea;
   box-shadow: 0 0 25px #cac6c6;
 }
@@ -87,4 +93,18 @@ export default {
   text-align: center;
   color: #505458;
 }
+
+.register-link {
+  cursor: pointer;
+  color: black;
+}
+
+.register-text {
+  color: black;
+}
+
+.register-text:hover {
+  color: #409EFF;
+}
+
 </style>

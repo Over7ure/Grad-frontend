@@ -5,7 +5,7 @@
     <el-container>
       <!--Header-->
       <el-header>
-        <Header :isCollapse="isCollapse" :loginUser="loginUser" @collapse="collapse"/>
+        <Header :isCollapse="isCollapse" :loginUser="loginUser" @collapse="collapse" @logout="logout"/>
       </el-header>
       <el-main>
         <!--Viewer-->
@@ -43,6 +43,10 @@ export default {
         this.sideWidth = 200
         this.logoTextShow = true
       }
+    },
+    logout() {
+      localStorage.removeItem('user');
+      this.$router.push({name: '登录'});
     }
   }
 }
