@@ -1,12 +1,12 @@
 <template>
-  <!-- Search Inputs -->
+  <!-- 搜索区域 -->
   <div class="search-container">
     <el-input v-model="username" :prefix-icon="Search" class="search-input" clearable
               placeholder="请输入名称"></el-input>
     <el-button :icon="Search" class="search-button" type="primary" @click="load">搜索</el-button>
   </div>
 
-  <!-- Action Buttons -->
+  <!-- 操作按钮区域 -->
   <div class="action-buttons-container">
     <el-button :icon="CirclePlus" type="primary">新增</el-button>
     <el-button :icon="Remove" type="danger">批量删除</el-button>
@@ -14,7 +14,7 @@
     <el-button :icon="Top" type="primary">导出</el-button>
   </div>
 
-  <!-- Table -->
+  <!-- 用户数据表格 -->
   <el-table :data="tableData" :header-cell-class-name="headerBg" border stripe>
     <el-table-column label="ID" prop="uid" width="80"></el-table-column>
     <el-table-column label="用户名" prop="username" width="140"></el-table-column>
@@ -44,7 +44,7 @@
     </el-table-column>
   </el-table>
 
-  <!-- Pagination -->
+  <!-- 分页控件 -->
   <div class="pagination-container">
     <el-pagination
         :current-page="pageNum"
@@ -65,6 +65,7 @@ import {Bottom, CirclePlus, Edit, Remove, Search, Top} from "@element-plus/icons
 export default {
   name: 'UserList',
   computed: {
+    // 图标组件计算属性
     Edit() {
       return Edit
     },
@@ -86,18 +87,20 @@ export default {
   },
   data() {
     return {
-      tableData: [],
-      total: 0,
-      pageNum: 1,
-      pageSize: 6,
-      username: '',
-      headerBg: 'headerBg'
+      tableData: [],     // 表格数据
+      total: 0,          // 数据总数
+      pageNum: 1,        // 当前页码
+      pageSize: 6,       // 每页数据量
+      username: '',      // 用户名搜索关键字
+      headerBg: 'headerBg' // 表头样式类名
     }
   },
   created() {
+    // 组件创建时加载数据
     this.load()
   },
   methods: {
+    // 加载用户数据列表
     load() {
       axios.get(`http://localhost:9090/api/user/findPage`, {
         params: {
@@ -106,20 +109,19 @@ export default {
           username: this.username
         }
       }).then(res => {
-        console.log(res.data)
         this.tableData = res.data.data
         this.total = res.data.total
       }).catch(error => {
         console.error(error)
       })
     },
+    // 处理页面大小变化
     handleSizeChange(pageSize) {
-      console.log(pageSize)
       this.pageSize = pageSize
       this.load()
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
-      console.log(pageNum)
       this.pageNum = pageNum
       this.load()
     },
@@ -154,4 +156,3 @@ export default {
   color: grey;
 }
 </style>
-

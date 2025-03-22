@@ -6,6 +6,7 @@ import ElementUI from 'element-plus'
 import 'element-plus/theme-chalk/index.css'
 import './assets/global.css'
 
+// 防抖函数，用于优化ResizeObserver性能
 const debounce = (fn, delay) => {
 	let timer = null;
 	return function (...args) {
@@ -14,36 +15,45 @@ const debounce = (fn, delay) => {
 	};
 };
 
+// 重写ResizeObserver，添加防抖功能避免频繁触发
 const _ResizeObserver = window.ResizeObserver;
 window.ResizeObserver = class extends _ResizeObserver {
 	constructor(callback) {
-		super(debounce(callback, 16));
+		super(debounce(callback, 16)); // 16ms的防抖延迟（约等于一帧）
 	}
 };
 
+// 创建Vue应用实例
 const app = createApp(App)
 
+// 全局配置
 app.config.productionTip = false
-app.use(ElementUI, {size: 'mini'})
-app.use(router)
-app.use(store)
+app.use(ElementUI, {size: 'mini'}) // 使用ElementUI并设置默认尺寸
+app.use(router)                    // 使用路由
+app.use(store)                     // 使用Vuex状态管理
 
+// 全局前置路由守卫
 router.beforeEach((to, from, next) => {
+	// 检查路由是否存在
 	const routeExists = router.getRoutes().some(route => route.path === to.path);
 	if (!routeExists) {
-		next('/index');
+		next('/index'); // 路由不存在时重定向到首页
 	} else if (to.meta.requireAuth) {
+		// 需要登录权限的路由，检查用户是否已登录
 		if (store.state.user.username) {
-			next();
+			next(); // 已登录，允许访问
 		} else {
+			// 未登录，重定向到登录页
 			next({
 				path: '/login',
-				query: {redirect: to.fullPath}
+				query: {redirect: to.fullPath} // 保存原目标路径，登录后可跳转回来
 			});
 		}
 	} else {
+		// 不需要登录权限的路由，直接访问
 		next();
 	}
 })
 
+// 挂载应用
 app.mount('#app')

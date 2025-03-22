@@ -30,12 +30,14 @@ import {ArrowDown, Expand, Fold} from "@element-plus/icons-vue";
 
 export default {
   name: 'HomeContainerHeader',
+  // 接收父组件传递的属性
   props: {
-    isCollapse: Boolean,
-    loginUser: String
+    isCollapse: Boolean, // 侧边栏是否折叠
+    loginUser: String    // 当前登录用户名
   },
   components: {ArrowDown, Expand, Fold},
   computed: {
+    // 计算当前页面标题，根据路由匹配情况动态生成
     pageTitle() {
       const route = this.$route;
       const matched = route.matched;
@@ -46,9 +48,11 @@ export default {
     }
   },
   methods: {
+    // 触发侧边栏折叠/展开事件
     collapse() {
       this.$emit('collapse');
     },
+    // 触发退出登录事件
     logout() {
       this.$emit('logout');
     }
@@ -62,19 +66,19 @@ export default {
   border-bottom: 1px solid #ccc;
   line-height: 60px;
   display: flex;
-  align-items: center; /* Ensure items are aligned properly */
+  align-items: center;
 }
 
 .collapse-button-container {
   flex: 1;
   font-size: 20px;
   display: flex;
-  align-items: center; /* Ensure items are aligned properly */
+  align-items: center;
 }
 
 .collapse-button {
   cursor: pointer;
-  margin-right: 20px; /* Add distance between collapse button and page title */
+  margin-right: 20px;
 }
 
 .page-title {
@@ -95,11 +99,11 @@ export default {
 }
 
 .arrow-icon {
-  margin-left: 5px; /* Add distance between username and arrow */
+  margin-left: 5px;
 }
 
 .dropdown-menu {
-  padding: 10px; /* Add padding to dropdown menu */
+  padding: 10px;
 }
 
 .dropdown-item {
@@ -115,6 +119,6 @@ export default {
   font-size: 14px;
   font-weight: bold;
   color: #333;
-  margin-right: 5px; /* Add distance between username and arrow */
+  margin-right: 5px;
 }
 </style>

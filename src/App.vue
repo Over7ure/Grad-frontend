@@ -1,4 +1,5 @@
 <template>
+  <!-- 路由视图 - 应用主体内容区域 -->
   <router-view/>
 </template>
 
@@ -9,6 +10,7 @@ export default {
 </script>
 
 <style>
+/* 确保应用至少占满整个视口高度 */
 #app {
   min-height: 100vh;
 }
