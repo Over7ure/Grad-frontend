@@ -20,7 +20,6 @@
     <el-table-column label="用户名" prop="username" width="140"></el-table-column>
     <el-table-column label="密码" prop="password" width="140"></el-table-column>
     <el-table-column label="邮箱" prop="email"></el-table-column>
-    <el-table-column label="文件数" prop="fileNum"></el-table-column>
     <el-table-column label="创建时间" prop="createDate"></el-table-column>
     <el-table-column label="用户身份" prop="role">
       <template v-slot="scope">
