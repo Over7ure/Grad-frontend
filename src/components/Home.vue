@@ -2,9 +2,9 @@
   <el-container class="home">
     <!-- 侧边菜单栏 -->
     <SideMenu :isCollapse="isCollapse" :logoTextShow="logoTextShow" :sideWidth="sideWidth"/>
-    <el-container>
+    <el-container :class="{'content-expanded': !isCollapse}">
       <!-- 页面顶部导航栏 -->
-      <el-header>
+      <el-header style="padding: 0;">
         <Header :isCollapse="isCollapse" :loginUser="loginUser" @collapse="collapse" @logout="logout"/>
       </el-header>
       <!-- 主内容区域 -->
@@ -41,7 +41,9 @@ export default {
       if (this.isCollapse) {
         // 折叠状态
         this.sideWidth = 64
-        this.logoTextShow = false
+        setTimeout(() => {
+          this.logoTextShow = false
+        }, 150) // 延迟隐藏文字，让动画更平滑
       } else {
         // 展开状态
         this.sideWidth = 200
@@ -58,5 +60,19 @@ export default {
 </script>
 
 <style scoped>
-/* 主页样式可以在这里添加 */
+.home {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content-expanded {
+  transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 确保主内容区域的过渡效果 */
+.el-main {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  padding: 20px;
+  overflow-x: hidden;
+}
 </style>

@@ -17,7 +17,7 @@
     </el-form-item>
     <!-- 注册链接 -->
     <el-form-item style="width: 100%; text-align: center;">
-      <span class="register-link" @click="navigateToRegister">Don't have an account? <span class="register-text">Register</span></span>
+      <span class="register-text">Don't have an account? <span class="register-link" @click="navigateToRegister">Register</span></span>
     </el-form-item>
   </el-form>
   </body>
@@ -109,16 +109,16 @@ export default {
   color: #505458;
 }
 
-.register-link {
-  cursor: pointer;
-  color: black;
-}
-
 .register-text {
   color: black;
 }
 
-.register-text:hover {
+.register-link {
+  cursor: pointer;
   color: #409EFF;
+}
+
+.register-link:hover {
+  text-decoration: underline;
 }
 </style>

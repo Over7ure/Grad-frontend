@@ -170,7 +170,7 @@ export default {
                 ElMessage.error(res.data.message || '删除失败')
               }
             })
-            .catch(error => {
+            .catch(() => {
               ElMessage.error('删除失败')
             })
       }).catch(() => {

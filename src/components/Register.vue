@@ -5,7 +5,8 @@
     <h3 class="login-title">Register</h3>
     <!-- 邮箱输入框 -->
     <el-form-item>
-      <el-input v-model="registerForm.email" placeholder="Email"></el-input>
+      <!-- 修改邮箱输入为自动补全 -->
+      <el-autocomplete v-model="registerForm.email" placeholder="Email" :fetch-suggestions="querySearch"></el-autocomplete>
     </el-form-item>
     <!-- 用户名输入框 -->
     <el-form-item>
@@ -23,6 +24,10 @@
     <el-form-item style="width: 100%">
       <el-button style="width: 100%" type="primary" @click="handleRegister">Register</el-button>
     </el-form-item>
+    <!-- 登录链接 -->
+    <el-form-item style="width: 100%; text-align: center;">
+      <span class="login-text">Already have an account? <span class="login-link" @click="navigateToLogin">Login</span></span>
+    </el-form-item>
   </el-form>
   </body>
 </template>
@@ -31,6 +36,7 @@
 import axios from 'axios';
 import {ElMessage} from 'element-plus';
 
+// noinspection GrazieInspection
 export default {
   name: 'UserRegister',
   data() {
@@ -41,7 +47,9 @@ export default {
         username: '',
         password: '',
         confirmPassword: ''
-      }
+      },
+      // 新增常用邮箱域名列表
+      emailDomains: ['gmail.com', 'outlook.com', 'qq.com', '163.com']
     };
   },
   methods: {
@@ -50,6 +58,16 @@ export default {
       // 验证两次输入的密码是否一致
       if (this.registerForm.password !== this.registerForm.confirmPassword) {
         ElMessage.error('Passwords do not match');
+        return;
+      }
+      // 验证邮箱格式
+      if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(this.registerForm.email)) {
+        ElMessage.error('Invalid email format');
+        return;
+      }
+      // 验证密码长度
+      if (this.registerForm.password.length < 6) {
+        ElMessage.error('Password must be at least 6 characters long');
         return;
       }
       
@@ -79,6 +97,17 @@ export default {
         this.clearForm();
       }
     },
+    // 新增邮箱自动补全方法
+    querySearch(queryString, cb) {
+      if (!queryString || queryString.indexOf('@') !== -1) {
+        cb([]);
+      } else {
+        const results = this.emailDomains.map(domain => {
+          return { value: queryString + '@' + domain }
+        });
+        cb(results);
+      }
+    },
     // 清空注册表单
     clearForm() {
       this.registerForm.email = '';
@@ -86,6 +115,9 @@ export default {
       this.registerForm.password = '';
       this.registerForm.confirmPassword = '';
     },
+    navigateToLogin() {
+      this.$router.push('/login');
+    }
   }
 };
 </script>
@@ -115,5 +147,18 @@ export default {
   margin: 0 auto 40px auto;
   text-align: center;
   color: #505458;
+}
+
+.login-text {
+  color: black;
+}
+
+.login-link {
+  cursor: pointer;
+  color: #409EFF;
+}
+
+.login-link:hover {
+  text-decoration: underline;
 }
 </style>
