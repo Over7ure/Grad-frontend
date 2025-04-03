@@ -146,22 +146,24 @@ export default {
 
 .dropdown-menu {
   padding: 5px 0;
-  background-color: #263445;
+  background-color: #304156;
   border: 1px solid #1c2a3a;
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.3);
 }
 
-.dropdown-item {
+.dropdown-item,
+:deep(.el-dropdown-menu__item) {
   font-size: 14px;
   padding: 8px 16px;
   color: #bfcbd9;
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.dropdown-item:hover {
-  background-color: #263445;
-  color: #ffffff;
+.dropdown-item:hover,
+:deep(.el-dropdown-menu__item:hover) {
+  background-color: #263445 !important;
+  color: #ffffff !important;
 }
 
 .login-user {
