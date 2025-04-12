@@ -30,7 +30,7 @@
         </div>
         <div class="camera-info" v-if="cameraOnline">
           <p><strong>分辨率:</strong> {{ cameraResolution }}</p>
-          <p><strong>帧率:</strong> 30fps</p>
+          <p><strong>帧率:</strong> {{ frameRate }}</p>
         </div>
       </div>
 
@@ -66,7 +66,8 @@ export default {
       cameraOnline: false,
       stream: null,
       cameraResolution: '1280x720',
-      captureInterval: 5,
+      frameRate: '30',
+      captureInterval: 3,
       continuousCapture: false,
       captureTimer: null,
       captureLogs: [],
@@ -90,25 +91,35 @@ export default {
         // 设置视频源
         if (this.$refs.webcam) {
           this.$refs.webcam.srcObject = this.stream;
+          
+          // 等待DOM更新完成
+          await this.$nextTick();
+          this.cameraOnline = true;
+          
+          // 获取分辨率和帧率信息
+          const videoTrack = this.stream.getVideoTracks()[0];
+          if (videoTrack) {
+            const settings = videoTrack.getSettings();
+            this.cameraResolution = settings.width + 'x' + settings.height;
+            this.frameRate = settings.frameRate ? settings.frameRate.toFixed(1) + 'fps' : '未知';
+          }
+          
+          this.addLog('摄像头已开启');
         } else {
-          throw new Error('找不到视频元素');
+          // 直接处理找不到视频元素的情况而不是抛出异常
+          console.error('找不到视频元素');
+          this.addLog('初始化失败: 找不到视频元素');
+          // 确保释放摄像头资源
+          if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+            this.stream = null;
+          }
+          this.cameraOnline = false;
         }
-        
-        // 等待DOM更新完成
-        await this.$nextTick();
-        this.cameraOnline = true;
-        
-        // 获取分辨率信息
-        const videoTrack = this.stream.getVideoTracks()[0];
-        if (videoTrack) {
-          const settings = videoTrack.getSettings();
-          this.cameraResolution = settings.width + 'x' + settings.height;
-        }
-        
-        this.addLog('摄像头已开启');
       } catch (error) {
         console.error('无法访问摄像头:', error);
         this.addLog('摄像头访问失败: ' + error.message);
+        this.cameraOnline = false;
       }
     },
     stopCamera() {
@@ -353,3 +364,4 @@ export default {
   color: #303133;
 }
 </style>
+

@@ -67,6 +67,12 @@ export default {
     fetchData() {
       axios.get('http://localhost:9090/api/prodHistory/findAll').then(response => {
         this.prodDataList = response.data
+        // 为每条数据计算良品率
+        this.prodDataList.forEach(item => {
+          item.yieldRate = item.prodNum > 0 ? 
+            ((item.prodNum - item.defectNum) / item.prodNum * 100) : 0;
+        });
+        
         if(this.prodDataList.length > 0) {
           this.selectedDate = this.prodDataList[0].prodDate
           this.currentData = this.prodDataList[0]
@@ -92,9 +98,12 @@ export default {
           scratchNum: 0,
           tinAshNum: 0
         });
-        this.currentData.yieldRate = (this.currentData.prodNum - this.currentData.defectNum) / this.currentData.prodNum * 100;
+        // 计算总数据的良品率
+        this.currentData.yieldRate = this.currentData.prodNum > 0 ? 
+          ((this.currentData.prodNum - this.currentData.defectNum) / this.currentData.prodNum * 100) : 0;
       } else {
-        this.currentData = this.prodDataList.find(item => item.prodDate === this.selectedDate)
+        this.currentData = this.prodDataList.find(item => item.prodDate === this.selectedDate);
+        // 此处不需要再计算良品率，因为在fetchData中已经为每条数据计算过了
       }
       this.updateCharts()
     },

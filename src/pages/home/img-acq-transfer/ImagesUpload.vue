@@ -47,27 +47,53 @@
 
   <!-- 图片上传对话框 -->
   <el-dialog v-model="dialogVisible" title="上传图片" width="30%">
-    <el-upload
-        v-model:file-list="fileList"
-        :auto-upload="false"
-        :limit="5"
-        :on-change="handleFileChange"
-        action="#"
-        class="upload-container"
-        drag
-        multiple>
-      <el-icon class="el-icon--upload">
-        <upload-filled/>
-      </el-icon>
-      <div class="el-upload__text">拖拽文件到此处或 <em>点击上传</em></div>
-      <template #tip>
-        <div class="el-upload__tip">支持jpg/png/gif/ico格式图片，且不超过5MB</div>
-      </template>
-    </el-upload>
+    <el-tabs v-model="activeTab">
+      <!-- 图片上传选项卡 -->
+      <el-tab-pane label="上传图片" name="images">
+        <el-upload
+            v-model:file-list="fileList"
+            :auto-upload="false"
+            :limit="5"
+            :on-change="handleFileChange"
+            action="#"
+            class="upload-container"
+            drag
+            multiple>
+          <el-icon class="el-icon--upload">
+            <upload-filled/>
+          </el-icon>
+          <div class="el-upload__text">拖拽文件到此处或 <em>点击上传</em></div>
+          <template #tip>
+            <div class="el-upload__tip">支持jpg/png/gif/ico格式图片，且不超过5MB</div>
+          </template>
+        </el-upload>
+      </el-tab-pane>
+      
+      <!-- 压缩包上传选项卡 -->
+      <el-tab-pane label="上传压缩包" name="archive">
+        <el-upload
+            v-model:file-list="archiveFileList"
+            :auto-upload="false"
+            :limit="1"
+            :on-change="handleArchiveFileChange"
+            action="#"
+            class="upload-container"
+            drag>
+          <el-icon class="el-icon--upload">
+            <upload-filled/>
+          </el-icon>
+          <div class="el-upload__text">拖拽压缩包到此处或 <em>点击上传</em></div>
+          <template #tip>
+            <div class="el-upload__tip">支持zip/rar格式压缩包，且不超过50MB，压缩包内应只包含图片文件</div>
+          </template>
+        </el-upload>
+      </el-tab-pane>
+    </el-tabs>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button :loading="uploading" type="primary" @click="submitUpload">上传</el-button>
+        <el-button v-if="activeTab === 'images'" :loading="uploading" type="primary" @click="submitUpload">上传图片</el-button>
+        <el-button v-if="activeTab === 'archive'" :loading="uploadingArchive" type="primary" @click="submitArchiveUpload">上传压缩包</el-button>
       </span>
     </template>
   </el-dialog>
@@ -77,6 +103,11 @@
 import axios from "axios";
 import {Remove, Search, Upload, UploadFilled, View} from "@element-plus/icons-vue";
 import {ElMessage, ElMessageBox} from 'element-plus';
+
+// 创建一个具有更长超时时间的axios实例
+const uploadAxios = axios.create({
+  timeout: 60000 // 60秒超时
+});
 
 export default {
   name: 'ImagesUpload',
@@ -109,14 +140,17 @@ export default {
       previewVisible: false,     // 预览对话框显示状态
       currentImage: null,        // 当前预览的图片
       fileList: [],              // 待上传文件列表
+      archiveFileList: [],       // 待上传压缩包文件列表
       uploading: false,          // 上传状态标识
+      uploadingArchive: false,   // 压缩包上传状态标识
       tableData: [],             // 表格数据
       total: 0,                  // 数据总数
       pageNum: 1,                // 当前页码
       pageSize: 6,               // 每页数据量
       picName: '',               // 图片名称搜索关键字
       headerBg: 'headerBg',      // 表头样式类名
-      baseUrl: '/public/'        // 基础URL路径
+      baseUrl: '/public/',       // 基础URL路径
+      activeTab: 'images',       // 当前激活的选项卡
     }
   },
   created() {
@@ -190,6 +224,26 @@ export default {
       if (!isLt5M) {
         ElMessage.error('图片大小不能超过5MB!');
         this.fileList.pop();
+      }
+    },
+    // 压缩包文件选择变化处理
+    handleArchiveFileChange(file) {
+      // 验证文件类型和大小
+      const isZip = file.raw.type === 'application/zip' || 
+                    file.raw.type === 'application/x-zip-compressed' || 
+                    file.raw.name.endsWith('.zip');
+      const isRar = file.raw.type === 'application/x-rar-compressed' || 
+                    file.raw.name.endsWith('.rar');
+      const isValidType = isZip || isRar;
+      const isLt50M = file.raw.size / 1024 / 1024 < 50;
+
+      if (!isValidType) {
+        ElMessage.error('只能上传zip或rar格式的压缩包!');
+        this.archiveFileList.pop();
+      }
+      if (!isLt50M) {
+        ElMessage.error('压缩包大小不能超过50MB!');
+        this.archiveFileList.pop();
       }
     },
     // 提交上传
@@ -269,6 +323,44 @@ export default {
           .finally(() => {
             this.uploading = false;
           });
+    },
+    // 提交压缩包上传
+    submitArchiveUpload() {
+      if (this.archiveFileList.length === 0) {
+        ElMessage.warning('请选择要上传的压缩包');
+        return;
+      }
+
+      this.uploadingArchive = true;
+      const file = this.archiveFileList[0];
+      
+      // 创建FormData对象用于上传文件
+      const formData = new FormData();
+      formData.append('file', file.raw);
+
+      // 使用具有更长超时时间的axios实例
+      uploadAxios.post('http://localhost:9090/api/image/uploadArchive', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      .then(response => {
+        if (response.data.code === 200) {
+          ElMessage.success(response.data.message || '压缩包上传成功');
+          this.dialogVisible = false;
+          this.archiveFileList = [];
+          this.load(); // 上传后刷新图片列表
+        } else {
+          ElMessage.error(response.data.message || '压缩包上传失败');
+        }
+      })
+      .catch(error => {
+        console.error('上传错误:', error);
+        ElMessage.error('上传失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+      })
+      .finally(() => {
+        this.uploadingArchive = false;
+      });
     }
   }
 }
@@ -318,5 +410,10 @@ export default {
 .empty-state {
   margin: 20px 0;
   text-align: center;
+}
+
+/* 选项卡内容的样式 */
+.el-tabs__content {
+  padding: 15px 0;
 }
 </style>
