@@ -2,8 +2,8 @@
   <div class="data-collection-container">
     <div class="webcam-section">
       <div class="webcam-display" :class="{ 'offline': !cameraOnline }">
-        <video v-if="cameraOnline" ref="webcam" autoplay></video>
-        <div v-else class="camera-offline">
+        <video v-show="cameraOnline" ref="webcam" autoplay muted playsinline></video>
+        <div v-if="!cameraOnline" class="camera-offline">
           <span class="camera-offline-icon">📷</span>
           <span>摄像头未开启</span>
         </div>
@@ -40,14 +40,6 @@
           <label>连续拍摄间隔 (秒)</label>
           <input type="number" v-model="captureInterval" min="1" max="60" :disabled="continuousCapture">
         </div>
-        <div class="setting-item">
-          <label>图像质量</label>
-          <select v-model="imageQuality">
-            <option value="high">高</option>
-            <option value="medium">中</option>
-            <option value="low">低</option>
-          </select>
-        </div>
       </div>
 
       <div class="settings-card capture-log">
@@ -75,7 +67,6 @@ export default {
       stream: null,
       cameraResolution: '1280x720',
       captureInterval: 5,
-      imageQuality: 'high',
       continuousCapture: false,
       captureTimer: null,
       captureLogs: [],
@@ -96,18 +87,24 @@ export default {
           video: { width: 1280, height: 720 } 
         });
         
-        // Use $nextTick to ensure DOM is updated
-        await this.$nextTick();
+        // 设置视频源
         if (this.$refs.webcam) {
           this.$refs.webcam.srcObject = this.stream;
-          try {
-            await this.$refs.webcam.play();
-          } catch (playError) {
-            console.error('播放视频流失败:', playError);
-          }
+        } else {
+          throw new Error('找不到视频元素');
         }
         
+        // 等待DOM更新完成
+        await this.$nextTick();
         this.cameraOnline = true;
+        
+        // 获取分辨率信息
+        const videoTrack = this.stream.getVideoTracks()[0];
+        if (videoTrack) {
+          const settings = videoTrack.getSettings();
+          this.cameraResolution = settings.width + 'x' + settings.height;
+        }
+        
         this.addLog('摄像头已开启');
       } catch (error) {
         console.error('无法访问摄像头:', error);
@@ -129,20 +126,16 @@ export default {
     },
     captureImage() {
       if (!this.cameraOnline) return;
-      
       this.captureCount++;
       this.addLog(`已捕获图像 #${this.captureCount}`);
-      // 这里可以添加实际图像捕获和保存的逻辑
     },
     toggleContinuousCapture() {
       if (this.continuousCapture) {
-        // 停止连续拍摄
         clearInterval(this.captureTimer);
         this.captureTimer = null;
         this.continuousCapture = false;
         this.addLog('连续拍摄已停止');
       } else {
-        // 开始连续拍摄
         this.continuousCapture = true;
         this.addLog(`连续拍摄已开始，间隔: ${this.captureInterval}秒`);
         this.captureTimer = setInterval(() => {
@@ -158,14 +151,12 @@ export default {
         message: message
       });
       
-      // 保持日志不超过50条
       if (this.captureLogs.length > 50) {
         this.captureLogs.pop();
       }
     }
   },
   beforeUnmount() {
-    // 组件销毁前清理资源
     this.stopCamera();
     if (this.captureTimer) {
       clearInterval(this.captureTimer);
@@ -207,7 +198,8 @@ export default {
 .webcam-display video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* 修改为contain确保视频完全可见 */
+  background: #000; /* 添加黑色背景确保视频边界可见 */
 }
 
 .camera-offline {
@@ -327,7 +319,7 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 200px;
-  max-height: 300px; /* Limit the maximum height */
+  max-height: 300px;
 }
 
 .log-container {
@@ -336,8 +328,8 @@ export default {
   background-color: #f8f9fa;
   border-radius: 4px;
   padding: 8px;
-  max-height: 250px; /* Set a fixed height for scrolling */
-  height: 250px; /* Ensure fixed height */
+  max-height: 250px;
+  height: 250px;
 }
 
 .empty-log {
