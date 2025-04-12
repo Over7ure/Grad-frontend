@@ -16,19 +16,19 @@
 
   <!-- 用户数据表格 -->
   <el-table :data="tableData" :header-cell-class-name="headerBg" border stripe>
-    <el-table-column label="ID" prop="uid" width="80"></el-table-column>
-    <el-table-column label="用户名" prop="username" width="140"></el-table-column>
-    <el-table-column label="密码" prop="password" width="140"></el-table-column>
+    <el-table-column label="ID" prop="uid" width="120"></el-table-column>
+    <el-table-column label="用户名" prop="username" width="100"></el-table-column>
+    <el-table-column label="密码" prop="password"></el-table-column>
     <el-table-column label="邮箱" prop="email"></el-table-column>
     <el-table-column label="创建时间" prop="createDate"></el-table-column>
-    <el-table-column label="用户身份" prop="role">
+    <el-table-column label="用户身份" prop="role" width="100">
       <template v-slot="scope">
         <span v-if="scope.row.role === 0">管理员</span>
         <span v-else-if="scope.row.role === 1">用户</span>
         <span v-else>{{ scope.row.role }}</span>
       </template>
     </el-table-column>
-    <el-table-column label="是否禁用" prop="isDisable">
+    <el-table-column label="是否禁用" prop="isDisable" width="100">
       <template v-slot="scope">
         <span v-if="scope.row.isDisable === 0">否</span>
         <span v-else-if="scope.row.isDisable === 1">是</span>
