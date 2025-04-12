@@ -15,6 +15,11 @@ const store = createStore({
 		login(state, user) {
 			state.user = user
 			window.localStorage.setItem('user', JSON.stringify(user))
+		},
+		logout(state) {
+			// 登出操作，清除用户信息和本地存储
+			state.user = ''
+			window.localStorage.removeItem('user')
 		}
 	}
 })

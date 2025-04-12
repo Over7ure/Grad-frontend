@@ -104,11 +104,6 @@ import axios from "axios";
 import {Remove, Search, Upload, UploadFilled, View} from "@element-plus/icons-vue";
 import {ElMessage, ElMessageBox} from 'element-plus';
 
-// 创建一个具有更长超时时间的axios实例
-const uploadAxios = axios.create({
-  timeout: 60000 // 60秒超时
-});
-
 export default {
   name: 'ImagesUpload',
   computed: {
@@ -160,7 +155,7 @@ export default {
   methods: {
     // 加载图片数据列表
     load() {
-      axios.get(`http://localhost:9090/api/image/findPage`, {
+      axios.get(`/api/image/findPage`, {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
@@ -195,7 +190,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        axios.delete(`http://localhost:9090/api/image/delete/${id}`)
+        axios.delete(`/api/image/delete/${id}`)
             .then(res => {
               if (res.data.code === 200) {
                 ElMessage.success('删除成功')
@@ -272,7 +267,7 @@ export default {
             const picName = file.name;    // 使用原始文件名
 
             // 发送请求到后端
-            axios.post('http://localhost:9090/api/image/uploadManually', {
+            axios.post('/api/image/uploadManually', {
               picUrl: picUrl,
               picName: picName
             })
@@ -339,7 +334,7 @@ export default {
       formData.append('file', file.raw);
 
       // 使用具有更长超时时间的axios实例
-      uploadAxios.post('http://localhost:9090/api/image/uploadArchive', formData, {
+      axios.post('/api/image/uploadArchive', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

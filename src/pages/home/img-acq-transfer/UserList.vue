@@ -101,7 +101,7 @@ export default {
   methods: {
     // 加载用户数据列表
     load() {
-      axios.get(`http://localhost:9090/api/user/findPage`, {
+      axios.get(`/api/user/findPage`, {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
