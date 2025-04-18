@@ -1,9 +1,8 @@
 import {createApp} from 'vue'
 import App from './App.vue'
-import router from './router'
+import router from './router/routes'
 import store from "./store";
 import ElementUI from 'element-plus'
-import axios from "axios";
 import 'element-plus/theme-chalk/index.css'
 import './assets/global.css'
 
@@ -24,28 +23,11 @@ window.ResizeObserver = class extends _ResizeObserver {
 	}
 };
 
-// 添加axios默认路由
-axios.defaults.baseURL = 'http://localhost:9090'
-
-// 添加全局响应拦截器
-axios.interceptors.response.use(
-  response => response,
-  error => {
-    // 若没有响应说明服务器可能关闭或网络异常
-    if (!error.response) {
-      store.commit('logout')
-      router.push('/login').catch(() => {})
-    }
-    return Promise.reject(error)
-  }
-)
-
 // 创建Vue应用实例
 const app = createApp(App)
 
 // 全局配置
 app.config.productionTip = false
-app.config.globalProperties.$axios = axios // 将axios挂载到全局属性上
 app.use(ElementUI, {size: 'mini'}) // 使用ElementUI并设置默认尺寸
 app.use(router)                    // 使用路由
 app.use(store)                     // 使用Vuex状态管理

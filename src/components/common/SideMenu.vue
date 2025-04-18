@@ -3,7 +3,7 @@
     <el-menu :collapse="isCollapse"
              :collapse-transition="false"
              :default-active="$route.path"
-             :default-openeds="['img-acp-transfer']"
+             :default-openeds="['']"
              active-text-color="#ffffff"
              background-color="#304156"
              class="side-menu-options"
@@ -23,9 +23,9 @@
           <el-icon><Picture /></el-icon>
           <span>图像采集与传输</span>
         </template>
-        <el-menu-item index="/imagesUpload" class="submenu-item">
+        <el-menu-item index="/filesUpload" class="submenu-item">
           <el-icon><Upload /></el-icon>
-          <span>图像上传</span>
+          <span>文件上传</span>
         </el-menu-item>
         <el-menu-item index="/dataCollection" class="submenu-item">
           <el-icon><DataLine /></el-icon>
@@ -67,13 +67,17 @@
           <el-icon><Files /></el-icon>
           <span>权重文件管理</span>
         </el-menu-item>
+        <el-menu-item index="/modelTraining" class="submenu-item">
+          <el-icon><Cpu /></el-icon>
+          <span>模型训练</span>
+        </el-menu-item>
       </el-sub-menu>
     </el-menu>
   </el-aside>
 </template>
 
 <script>
-import {Picture, Upload, DataLine, User, Monitor, Search, Document, SetUp, Connection, Files} from "@element-plus/icons-vue";
+import {Picture, Upload, DataLine, User, Monitor, Search, Document, SetUp, Connection, Files, Cpu} from "@element-plus/icons-vue";
 
 export default {
   name: 'SideMenu',
@@ -83,7 +87,7 @@ export default {
     logoTextShow: Boolean // 是否显示logo文字
   },
   components: {
-    Picture, Upload, DataLine, User, Monitor, Search, Document, SetUp, Connection, Files
+    Picture, Upload, DataLine, User, Monitor, Search, Document, SetUp, Connection, Files, Cpu
   }
 }
 </script>
@@ -195,3 +199,4 @@ export default {
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 </style>
+

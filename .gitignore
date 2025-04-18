@@ -23,3 +23,5 @@ pnpm-debug.log*
 *.sw?
 
 /public/images/
+/public/docker_files/
+/public/MediaProcessing.vue

@@ -65,7 +65,7 @@ export default {
   },
   methods: {
     fetchData() {
-      axios.get('/api/prodHistory/findAll').then(response => {
+      axios.get('http://localhost:9090/api/prodHistory/findAll').then(response => {
         this.prodDataList = response.data
         // 为每条数据计算良品率
         this.prodDataList.forEach(item => {

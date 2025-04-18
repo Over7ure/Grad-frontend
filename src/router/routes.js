@@ -27,11 +27,11 @@ const routes = [
 					requireAuth: true
 				}
 			},
-			// 图像获取与传输模块
+			// 文件传输模块
 			{
-				path: '/imagesUpload',
-				name: '图像上传',
-				component: () => import('@/pages/home/img-acq-transfer/ImagesUpload.vue'),
+				path: '/filesUpload',
+				name: '文件上传',
+				component: () => import('@/pages/home/img-acq-transfer/FilesUpload.vue'),
 				meta: {
 					requireAuth: true
 				}
@@ -74,6 +74,14 @@ const routes = [
 				path: '/weightFileManagement',
 				name: '权重文件管理',
 				component: () => import('@/pages/home/mod-mgt/WeightFileManagement.vue'),
+				meta: {
+					requireAuth: true
+				}
+			},
+			{
+				path: '/modelTraining',
+				name: '模型训练',
+				component: () => import('@/pages/home/mod-mgt/ModelTraining.vue'),
 				meta: {
 					requireAuth: true
 				}
