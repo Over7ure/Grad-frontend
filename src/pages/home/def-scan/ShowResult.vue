@@ -49,7 +49,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import * as echarts from 'echarts'
 
 export default {
@@ -65,7 +64,7 @@ export default {
   },
   methods: {
     fetchData() {
-      axios.get('http://localhost:9090/api/prodHistory/findAll').then(response => {
+      this.$axios.get('/api/prodHistory/findAll').then(response => {
         this.prodDataList = response.data
         // 为每条数据计算良品率
         this.prodDataList.forEach(item => {

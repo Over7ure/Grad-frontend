@@ -1,33 +1,43 @@
-import {createApp} from 'vue'
-import App from './App.vue'
-import router from './router/routes'
+import axios from 'axios';
+import ElementUI from 'element-plus';
+import 'element-plus/theme-chalk/index.css';
+import { createApp } from 'vue';
+import App from './App.vue';
+import './assets/global.css';
+import router from './router/routes';
 import store from "./store";
-import ElementUI from 'element-plus'
-import 'element-plus/theme-chalk/index.css'
-import './assets/global.css'
 
-// 防抖函数，用于优化ResizeObserver性能
-const debounce = (fn, delay) => {
-	let timer = null;
-	return function (...args) {
-		clearTimeout(timer);
-		timer = setTimeout(() => fn.apply(this, args), delay);
-	};
-};
+// 请求拦截器：自动携带token
+axios.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers['Authorization'] = 'Bearer ' + token
+  }
+  return config
+}, error => Promise.reject(error))
 
-// 重写ResizeObserver，添加防抖功能避免频繁触发
-const _ResizeObserver = window.ResizeObserver;
-window.ResizeObserver = class extends _ResizeObserver {
-	constructor(callback) {
-		super(debounce(callback, 16)); // 16ms的防抖延迟（约等于一帧）
-	}
-};
+// 响应拦截器：处理token失效
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
 
 // 创建Vue应用实例
 const app = createApp(App)
 
 // 全局配置
 app.config.productionTip = false
+app.config.globalProperties.$axios = axios // 将axios挂载到全局属性上
+
+// 替换window.axios为全局axios（兼容部分直接用axios的老代码）
+window.axios = axios
+
 app.use(ElementUI, {size: 'mini'}) // 使用ElementUI并设置默认尺寸
 app.use(router)                    // 使用路由
 app.use(store)                     // 使用Vuex状态管理

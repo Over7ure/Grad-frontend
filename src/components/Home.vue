@@ -53,6 +53,7 @@ export default {
     // 处理用户登出
     logout() {
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
       this.$router.push('/login');
     }
   }

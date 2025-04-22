@@ -53,6 +53,8 @@ export default {
         if (response.data.code === 200) {
           // 登录成功
           ElMessage.success(response.data.message);
+          // 保存token到localStorage
+          localStorage.setItem('token', response.data.data);
           // 保存用户信息到状态管理器
           this.$store.commit('login', this.loginForm);
           // 获取重定向地址并跳转

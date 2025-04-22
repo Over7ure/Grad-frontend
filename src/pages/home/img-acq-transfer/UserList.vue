@@ -58,8 +58,8 @@
 </template>
 
 <script>
-import axios from "axios";
 import {Bottom, CirclePlus, Edit, Remove, Search, Top} from "@element-plus/icons-vue";
+import {ElMessage} from 'element-plus';
 
 export default {
   name: 'UserList',
@@ -101,7 +101,7 @@ export default {
   methods: {
     // 加载用户数据列表
     load() {
-      axios.get(`http://localhost:9090/api/user/findPage`, {
+      this.$axios.get(`/api/user/findPage`, {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
@@ -110,8 +110,12 @@ export default {
       }).then(res => {
         this.tableData = res.data.data
         this.total = res.data.total
+        if (res.data.code) {
+          ElMessage.error(res.data.msg)
+        }
       }).catch(error => {
         console.error(error)
+        ElMessage.error(error)
       })
     },
     // 处理页面大小变化
