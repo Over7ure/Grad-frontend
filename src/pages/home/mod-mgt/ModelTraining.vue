@@ -24,10 +24,11 @@
       <div class="card-content">
         <p>点击下方按钮创建新的训练任务，系统将为您初始化训练环境</p>
         <el-button 
-          type="primary" 
-          size="large" 
-          @click.prevent="createTraining" 
-          :loading="loading.creating" 
+          type="primary"
+          native-type="button"
+          size="large"
+          @click.prevent="createTraining"
+          :loading="loading.creating"
           class="action-button">
           <el-icon class="button-icon"><Plus /></el-icon>创建训练任务
         </el-button>
@@ -59,9 +60,10 @@
           </template>
         </el-upload>
         <div class="action-row">
-          <el-button @click="currentStep = 0">返回上一步</el-button>
+          <el-button native-type="button" @click="currentStep = 0">返回上一步</el-button>
           <el-button 
             type="primary" 
+            native-type="button"
             @click.prevent="submitDatasetUpload" 
             :loading="loading.uploading" 
             :disabled="datasetFileList.length === 0">
@@ -90,39 +92,24 @@
               <el-input v-model="trainConfig.pr_name" placeholder="请输入项目名称" />
             </el-form-item>
             <el-form-item label="批次大小" prop="batch_size">
-              <el-input-number v-model="trainConfig.batch_size" :min="1" :max="128" />
+              <el-input v-model="trainConfig.batch_size" />
             </el-form-item>
             <el-form-item label="训练周期" prop="epochs">
-              <el-input-number v-model="trainConfig.epochs" :min="1" :max="500" />
+              <el-input v-model="trainConfig.epochs" />
             </el-form-item>
             <el-form-item label="图片尺寸" prop="image_size">
-              <el-select v-model="trainConfig.image_size" placeholder="选择图片尺寸">
-                <el-option label="224x224" value="224"></el-option>
-                <el-option label="256x256" value="256"></el-option>
-                <el-option label="320x320" value="320"></el-option>
-                <el-option label="384x384" value="384"></el-option>
-                <el-option label="448x448" value="448"></el-option>
-                <el-option label="512x512" value="512"></el-option>
-              </el-select>
+              <el-input v-model="trainConfig.image_size" />
             </el-form-item>
             <el-form-item label="学习率" prop="learning_rate">
-              <el-select v-model="trainConfig.learning_rate" placeholder="选择学习率">
-                <el-option label="0.1" value="0.1"></el-option>
-                <el-option label="0.01" value="0.01"></el-option>
-                <el-option label="0.001" value="0.001"></el-option>
-                <el-option label="0.0001" value="0.0001"></el-option>
-              </el-select>
+              <el-input v-model="trainConfig.learning_rate" />
             </el-form-item>
             <el-form-item label="训练设备" prop="device">
-              <el-radio-group v-model="trainConfig.device">
-                <el-radio label="cuda">GPU (CUDA)</el-radio>
-                <el-radio label="cpu">CPU</el-radio>
-              </el-radio-group>
+              <el-input v-model="trainConfig.device" />
             </el-form-item>
           </div>
           <div class="action-row">
-            <el-button @click="currentStep = 1">返回上一步</el-button>
-            <el-button type="primary" @click="validateAndContinue">下一步</el-button>
+            <el-button native-type="button" @click="currentStep = 1">返回上一步</el-button>
+            <el-button type="primary" native-type="button" @click="validateAndContinue">下一步</el-button>
           </div>
         </el-form>
       </div>
@@ -142,13 +129,13 @@
             <el-descriptions-item label="项目名称">{{ trainConfig.pr_name }}</el-descriptions-item>
             <el-descriptions-item label="批次大小">{{ trainConfig.batch_size }}</el-descriptions-item>
             <el-descriptions-item label="训练周期">{{ trainConfig.epochs }}</el-descriptions-item>
-            <el-descriptions-item label="图片尺寸">{{ trainConfig.image_size }}x{{ trainConfig.image_size }}</el-descriptions-item>
+            <el-descriptions-item label="图片尺寸">{{ trainConfig.image_size }}</el-descriptions-item>
             <el-descriptions-item label="学习率">{{ trainConfig.learning_rate }}</el-descriptions-item>
           </el-descriptions>
         </div>
         <div class="action-row">
-          <el-button @click="currentStep = 2">返回修改配置</el-button>
-          <el-button type="primary" @click.prevent="startTraining" :loading="loading.training">
+          <el-button native-type="button" @click="currentStep = 2">返回修改配置</el-button>
+          <el-button type="primary" native-type="button" @click.prevent="startTraining" :loading="loading.training">
             <el-icon class="button-icon"><VideoPlay /></el-icon>开始训练
           </el-button>
         </div>
@@ -156,7 +143,7 @@
     </el-card>
 
     <!-- 训练已开始状态 -->
-    <el-card v-else class="step-card">
+    <el-card v-else-if="currentStep===4" class="step-card">
       <template #header>
         <div class="card-header">
           <h3>训练进行中</h3>
@@ -164,27 +151,39 @@
       </template>
       <div class="card-content">
         <div class="training-status">
-          <!-- 新增：训练日志展示 -->
           <div v-if="trainLog && trainLog.last_epoch" class="train-log-panel">
             <h4>最新训练日志</h4>
             <el-descriptions :column="2" border>
               <el-descriptions-item label="当前Epoch">{{ trainLog.last_epoch.epoch }}</el-descriptions-item>
-              <el-descriptions-item label="学习率">{{ trainLog.last_epoch['lr/pg0'] }}</el-descriptions-item>
+              <el-descriptions-item label="训练耗时">{{ trainLog.last_epoch.time }}s</el-descriptions-item>
+              <el-descriptions-item label="lr/pg0">{{ trainLog.last_epoch['lr/pg0'] }}</el-descriptions-item>
+              <el-descriptions-item label="lr/pg1">{{ trainLog.last_epoch['lr/pg1'] }}</el-descriptions-item>
+              <el-descriptions-item label="lr/pg2">{{ trainLog.last_epoch['lr/pg2'] }}</el-descriptions-item>
               <el-descriptions-item label="mAP50">{{ trainLog.last_epoch['metrics/mAP50(B)'] }}</el-descriptions-item>
+              <el-descriptions-item label="mAP50-95">{{ trainLog.last_epoch['metrics/mAP50-95(B)'] }}</el-descriptions-item>
               <el-descriptions-item label="Precision">{{ trainLog.last_epoch['metrics/precision(B)'] }}</el-descriptions-item>
               <el-descriptions-item label="Recall">{{ trainLog.last_epoch['metrics/recall(B)'] }}</el-descriptions-item>
-              <el-descriptions-item label="训练耗时">{{ trainLog.last_epoch.time }}s</el-descriptions-item>
-              <el-descriptions-item label="训练损失">{{ trainLog.last_epoch['train/box_loss'] }}</el-descriptions-item>
-              <el-descriptions-item label="验证损失">{{ trainLog.last_epoch['val/box_loss'] }}</el-descriptions-item>
+              <el-descriptions-item label="训练box损失">{{ trainLog.last_epoch['train/box_loss'] }}</el-descriptions-item>
+              <el-descriptions-item label="训练cls损失">{{ trainLog.last_epoch['train/cls_loss'] }}</el-descriptions-item>
+              <el-descriptions-item label="训练dfl损失">{{ trainLog.last_epoch['train/dfl_loss'] }}</el-descriptions-item>
+              <el-descriptions-item label="验证box损失">{{ trainLog.last_epoch['val/box_loss'] }}</el-descriptions-item>
+              <el-descriptions-item label="验证cls损失">{{ trainLog.last_epoch['val/cls_loss'] }}</el-descriptions-item>
+              <el-descriptions-item label="验证dfl损失">{{ trainLog.last_epoch['val/dfl_loss'] }}</el-descriptions-item>
             </el-descriptions>
+            <!-- 新增：训练日志曲线图 -->
+            <div
+              v-if="trainLog && trainLog.total_epochs && trainLog.total_epochs.length"
+              class="train-log-chart"
+              ref="chartRef"
+            ></div>
           </div>
           <el-result
             icon="success"
             title="训练任务已成功启动"
-            sub-title="训练任务正在后台进行中，您可以在任务管理页面查看训练进度">
+            sub-title="训练任务正在后台进行中，您可以在点击按钮查看训练进度">
             <template #extra>
-              <el-button type="primary" @click="resetTraining">创建新的训练任务</el-button>
-              <el-button @click="goToTaskList">查看任务列表</el-button>
+              <el-button type="primary" native-type="button" @click="resetTraining">创建新的训练任务</el-button>
+              <el-button native-type="button" @click="viewCurrentTrainStatus">查看当前任务训练状态</el-button>
             </template>
           </el-result>
         </div>
@@ -206,6 +205,7 @@ import axios from "axios";
 import { UploadFilled, Plus, VideoPlay, Loading } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { defineComponent, ref, reactive, onMounted, watch, onBeforeUnmount } from "vue";
+import * as echarts from "echarts";
 
 export default defineComponent({
   name: 'ModelTraining',
@@ -235,19 +235,83 @@ export default defineComponent({
       device: '' // 允许为空
     });
 
-    const formRules = {
-      pr_name: [
-        { min: 2, max: 50, message: '项目名称长度应为2-50个字符', trigger: 'blur' }
-      ],
-      batch_size: [
-        { type: 'number', min: 1, message: '批次大小必须大于0', trigger: 'change' }
-      ],
-      epochs: [
-        { type: 'number', min: 1, message: '训练周期必须大于0', trigger: 'change' }
-      ],
-      image_size: [],
-      learning_rate: [],
-      device: []
+    // 新增：训练日志相关
+    const trainLog = ref(null);
+
+    // 新增：echarts实例和图表数据
+    const chartRef = ref(null);
+    let chartInstance = null;
+
+    // 处理所有epoch日志为图表数据
+    const getEpochChartData = () => {
+      // 修改为 total_epochs
+      if (!trainLog.value || !trainLog.value.total_epochs || !Array.isArray(trainLog.value.total_epochs)) return null;
+      const epochs = trainLog.value.total_epochs;
+      return {
+        epochs: epochs.map(e => e.epoch),
+        mAP50: epochs.map(e => e['metrics/mAP50(B)']),
+        mAP50_95: epochs.map(e => e['metrics/mAP50-95(B)']),
+        precision: epochs.map(e => e['metrics/precision(B)']),
+        recall: epochs.map(e => e['metrics/recall(B)']),
+        train_box_loss: epochs.map(e => e['train/box_loss']),
+        train_cls_loss: epochs.map(e => e['train/cls_loss']),
+        train_dfl_loss: epochs.map(e => e['train/dfl_loss']),
+        val_box_loss: epochs.map(e => e['val/box_loss']),
+        val_cls_loss: epochs.map(e => e['val/cls_loss']),
+        val_dfl_loss: epochs.map(e => e['val/dfl_loss']),
+        lr_pg0: epochs.map(e => e['lr/pg0']),
+        lr_pg1: epochs.map(e => e['lr/pg1']),
+        lr_pg2: epochs.map(e => e['lr/pg2']),
+        time: epochs.map(e => e['time']),
+      };
+    };
+
+    // 渲染echarts
+    const renderChart = () => {
+      if (!chartRef.value) return;
+      const chartData = getEpochChartData();
+      if (!chartData) return;
+      if (!chartInstance) {
+        chartInstance = echarts.init(chartRef.value);
+      }
+      const option = {
+        tooltip: { trigger: 'axis' },
+        legend: {
+          data: [
+            'mAP50', 'mAP50-95', 'Precision', 'Recall',
+            '训练box损失', '训练cls损失', '训练dfl损失',
+            '验证box损失', '验证cls损失', '验证dfl损失',
+            'lr/pg0', 'lr/pg1', 'lr/pg2', '耗时(s)'
+          ],
+          top: 10,
+        },
+        grid: { left: 40, right: 20, bottom: 40, top: 70 }, // 增大top，拉开legend与series距离
+        xAxis: {
+          type: 'category',
+          data: chartData.epochs,
+        },
+        yAxis: [
+          { type: 'value' }
+        ],
+        series: [
+          { name: 'mAP50', type: 'line', data: chartData.mAP50 },
+          { name: 'mAP50-95', type: 'line', data: chartData.mAP50_95 },
+          { name: 'Precision', type: 'line', data: chartData.precision },
+          { name: 'Recall', type: 'line', data: chartData.recall },
+          { name: '训练box损失', type: 'line', data: chartData.train_box_loss },
+          { name: '训练cls损失', type: 'line', data: chartData.train_cls_loss },
+          { name: '训练dfl损失', type: 'line', data: chartData.train_dfl_loss },
+          { name: '验证box损失', type: 'line', data: chartData.val_box_loss },
+          { name: '验证cls损失', type: 'line', data: chartData.val_cls_loss },
+          { name: '验证dfl损失', type: 'line', data: chartData.val_dfl_loss },
+          { name: 'lr/pg0', type: 'line', data: chartData.lr_pg0 },
+          { name: 'lr/pg1', type: 'line', data: chartData.lr_pg1 },
+          { name: 'lr/pg2', type: 'line', data: chartData.lr_pg2 },
+          { name: '耗时(s)', type: 'line', data: chartData.time },
+        ]
+      };
+      chartInstance.setOption(option);
+      chartInstance.resize();
     };
 
     // 状态持久化相关方法
@@ -258,7 +322,8 @@ export default defineComponent({
         trainSaveFolderId: trainSaveFolderId.value, // 新增: 保存 train_save_folder_id
         yamlFileId: yamlFileId.value,
         weightFileId: weightFileId.value, // 新增: 保存 weights_file_id
-        trainConfig: { ...trainConfig }
+        trainConfig: { ...trainConfig },
+        trainLog: trainLog.value // 新增：保存训练日志
       };
       localStorage.setItem('modelTrainingState', JSON.stringify(state));
     };
@@ -276,6 +341,9 @@ export default defineComponent({
 
           if (state.trainConfig) {
             Object.assign(trainConfig, state.trainConfig);
+          }
+          if (state.trainLog) { // 新增：恢复训练日志
+            trainLog.value = state.trainLog;
           }
 
           return true;
@@ -318,12 +386,11 @@ export default defineComponent({
         loading.creating = true;
         loading.overlay = true;
         loading.message = '正在创建训练任务...';
-        
+
         const formData = new FormData();
         return axios.post("http://localhost:5130/create_train", formData, {
-          headers: { 
-            'Content-Type': 'multipart/form-data',
-            'X-Requested-With': 'XMLHttpRequest' // 添加AJAX标识
+          headers: {
+            'Content-Type': 'multipart/form-data'
           }
         })
         .then(response => {
@@ -339,20 +406,9 @@ export default defineComponent({
           }
         })
         .catch(error => {
-          // 针对性处理重定向响应
-          if (error.response && (error.response.status === 301 || error.response.status === 302)) {
-            console.log("拦截到重定向，不执行页面跳转");
-            folderId.value = error.response.data?.folder_id || '';
-            ElMessage.success("训练任务创建成功");
-            currentStep.value = 1;
-            saveState(); // 保存当前状态
-            return true;
-          } else {
-            console.error("创建训练流程失败:", error);
             ElMessage.error(error.message || "请求失败");
             clearState(); // 添加: 发生错误时清除状态
             return false;
-          }
         })
         .finally(() => {
           loading.creating = false;
@@ -365,43 +421,37 @@ export default defineComponent({
         loading.uploading = true;
         loading.overlay = true;
         loading.message = '正在上传数据集...';
-        
+
         try {
           const formData = new FormData();
           formData.append('folder_id', folderId.value);
-          
+
           if (!files || files.length === 0) {
-            throw new Error('没有选择文件');
+            ElMessage.error('没有选择文件');
           }
-          
+
           // 检查并安全添加文件
           for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (file && file.raw) {
               formData.append('files', file.raw);
             } else {
-              console.error('无效的文件对象:', file);
-              throw new Error('存在无效的文件对象');
+              ElMessage.error('无效的文件对象:', file);
             }
           }
-          
-          // 使用常规 axios 实例，避免原型链问题
+
           return axios.post("http://localhost:5130/upload_datasets", formData, {
-            headers: { 
+            headers: {
               'Content-Type': 'multipart/form-data',
             }
           })
           .then(response => {
             if(response.data.code === 200){
-              // 修复: 使用正确的ElMessage格式
               if (response.data.data && response.data.data.yaml_file_id) {
                 yamlFileId.value = response.data.data.yaml_file_id;
-                console.log("获取yaml_file_id成功:", yamlFileId.value);
               } else {
-                console.warn("响应中没有yaml_file_id");
                 ElMessage.warning("响应中没有yaml_file_id");
               }
-
               ElMessage.success('数据集上传成功');
               currentStep.value = 2; // 进入训练配置步骤
               saveState(); // 保存当前状态
@@ -411,7 +461,6 @@ export default defineComponent({
             }
           })
           .catch(error => {
-            console.error('上传错误:', error);
             ElMessage.error('上传失败: ' + (error.response?.data?.msg || error.message || '未知错误'));
             clearState(); // 添加: 发生错误时清除状态
             return false;
@@ -421,20 +470,15 @@ export default defineComponent({
             loading.overlay = false;
           });
         } catch (err) {
-          console.error('文件处理错误:', err);
           ElMessage.error(err.message || '准备上传数据时出错');
           loading.uploading = false;
           loading.overlay = false;
           return Promise.reject(err);
         }
       },
-      
+
       // 开始训练
       startTraining: (config) => {
-        loading.training = true;
-        loading.overlay = true;
-        loading.message = '正在启动训练...'; // 更新加载消息
-
         try {
           const formData = new FormData();
           // 确保 yaml_id 和 train_save_folder_id 存在且有效才添加
@@ -457,7 +501,6 @@ export default defineComponent({
              return Promise.reject("Missing train_save_folder_id"); // 提前返回或抛出错误
           }
 
-
           // 仅添加非空值的超参数
           for (const key in config) {
             const value = config[key];
@@ -467,11 +510,9 @@ export default defineComponent({
             }
           }
 
-          console.log("FormData content before sending:");
-          for (let [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-          }
-
+          ElMessage.success("启动训练成功")
+          currentStep.value = 4; // 进入训练进行中状态
+          saveState();
 
           return axios.post("http://localhost:5130/start_train", formData, {
             headers: {
@@ -481,30 +522,10 @@ export default defineComponent({
           .then(async response => {
             if(response.data.code === 200 && response.data.data){
               weightFileId.value = response.data.data.weights_file_id || '';
-              console.log("Training started successfully. Weights File ID:", weightFileId.value);
-
-              // 新增：训练成功后保存权重信息到后端
-              try {
-                if (weightFileId.value && config.epochs) {
-                  await axios.post("/api/weight/save", {
-                    weightFileId: weightFileId.value,
-                    epoch: config.epochs
-                  })
-                  .then(response => {
-                    if (response.data.code === 200) {
-                      ElMessage.success("权重信息保存成功");
-                    } else {
-                      console.error("权重信息保存失败:", response.data.msg);
-                      ElMessage.error("权重信息保存失败: " + response.data.msg);
-                    }
-                  })
-                }
-              } catch (e) {
-                console.error('权重信息保存失败', e);
-              }
+              ElMessage.success("Train successfully. Weights File ID:", weightFileId.value);
 
               ElMessage.success("训练已完成");
-              currentStep.value = 4; // 进入训练进行中状态
+              currentStep.value = 5;
               saveState(); // 保存当前状态 (包含新的 ID)
               return true;
             } else {
@@ -514,10 +535,6 @@ export default defineComponent({
           .catch(error => {
             ElMessage.error(error.message || "请求失败");
             return false;
-          })
-          .finally(() => {
-            loading.training = false;
-            loading.overlay = false;
           });
         } catch (err) {
           console.error("启动训练时发生错误:", err);
@@ -529,40 +546,6 @@ export default defineComponent({
       }
     };
 
-    // 新增：训练日志相关
-    const trainLog = ref(null);
-    let logTimer = null;
-
-    // 训练日志轮询函数
-    const fetchTrainLog = () => {
-      if (!trainSaveFolderId.value) return;
-      const formData = new FormData();
-      formData.append('train_folder_id', trainSaveFolderId.value);
-      axios.post('http://localhost:5130/train_log', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      }).then(res => {
-        if (res.data && res.data.code === 200) {
-          trainLog.value = res.data.data;
-        }
-      }).catch((error) => {
-        ElMessage.error('获取训练日志失败: ' + error.message);
-      });
-    };
-
-    // 启动日志轮询
-    const startLogPolling = () => {
-      stopLogPolling();
-      fetchTrainLog();
-      logTimer = setInterval(fetchTrainLog, 40000); // 每40秒轮询一次
-    };
-    // 停止日志轮询
-    const stopLogPolling = () => {
-      if (logTimer) {
-        clearInterval(logTimer);
-        logTimer = null;
-      }
-    };
-
     // 处理函数
     const handleDatasetFileChange = (file) => {
       // 修复文件处理逻辑
@@ -570,11 +553,11 @@ export default defineComponent({
         ElMessage.error('无效的文件对象');
         return;
       }
-      
+
       const allowedExtensions = ['.zip', '.rar', '.7z'];
       const fileName = file.raw.name.toLowerCase();
       const isAllowed = allowedExtensions.some(ext => fileName.endsWith(ext));
-      
+
       if (!isAllowed) {
         ElMessage.error('仅支持上传.zip、.rar、.7z格式压缩包');
         const index = datasetFileList.value.indexOf(file);
@@ -594,7 +577,6 @@ export default defineComponent({
     };
 
     const resetTraining = () => {
-      stopLogPolling();
       // 重置所有状态
       currentStep.value = 0;
       folderId.value = '';
@@ -616,55 +598,66 @@ export default defineComponent({
       trainLog.value = null;
     };
 
-    const goToTaskList = () => {
-      stopLogPolling();
-      // 跳转到任务列表页面
-      // 可以根据实际路由配置进行修改
-      // this.$router.push('/task-list');
-
-      // 清除保存的状态，因为我们已经完成了整个流程或要离开此页面
-      clearState(); // 调用 clearState 来移除 localStorage 中的项
-    };
-
-    const createTraining = (event) => {
-      if (event) {
-        event.preventDefault(); // 显式阻止默认行为
-      }
+    const createTraining = () => {
       return api.createTraining();
     };
 
-    const submitDatasetUpload = (event) => {
-      if (event) {
-        event.preventDefault(); // 显式阻止默认行为
-      }
-      
+    const submitDatasetUpload = () => {
       if (!datasetFileList.value || datasetFileList.value.length === 0) {
         ElMessage.warning('请先选择要上传的数据集文件');
         return false;
       }
-      
+
       return api.uploadDataset(datasetFileList.value);
     };
 
-    const startTraining = (event) => {
-      if (event) {
-        event.preventDefault(); // 显式阻止默认行为
+    const startTraining = () => {
+      // startLogPolling(); // 启动日志轮询
+      return api.startTraining(trainConfig);
+    };
+
+    // 新增：查看当前任务训练状态
+    const viewCurrentTrainStatus = () => {
+      if (!trainSaveFolderId.value) {
+        ElMessage.warning('未找到训练任务ID，无法获取训练日志');
+        return;
       }
-      startLogPolling(); // 启动日志轮询
-      return api.startTraining(trainConfig).then(success => {
-        if (!success) stopLogPolling(); // 启动失败时停止轮询
-        return success;
+      const formData = new FormData();
+      formData.append('train_folder_id', trainSaveFolderId.value);
+      axios.post('http://localhost:5130/train_log', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      .then(res => {
+        if (res.data && res.data.code === 200) {
+          trainLog.value = res.data.data;
+          saveState();
+          ElMessage.success('训练日志已获取');
+        } else {
+          ElMessage.error(res.data.msg || '获取训练日志失败');
+        }
+      })
+      .catch(error => {
+        ElMessage.error('获取训练日志失败: ' + (error.message || '未知错误'));
       });
     };
 
-    // 在组件挂载时检查并恢复保存的状态
+    // 监听trainLog变化，自动渲染图表
+    watch(() => trainLog.value, () => {
+      setTimeout(renderChart, 200); // 等待DOM渲染
+    });
+
+    // 窗口自适应
     onMounted(() => {
       loadState();
+      window.addEventListener('resize', () => {
+        if (chartInstance) chartInstance.resize();
+      });
     });
 
     // 页面卸载时清理定时器
     onBeforeUnmount(() => {
-      stopLogPolling();
+      if (chartInstance) chartInstance.dispose();
+      window.removeEventListener('resize', () => {});
     });
 
     // 对外暴露的方法
@@ -673,7 +666,6 @@ export default defineComponent({
       trainConfig,
       datasetFileList,
       loading,
-      formRules,
       trainConfigForm,
       trainLog,
       createTraining,
@@ -682,7 +674,8 @@ export default defineComponent({
       validateAndContinue,
       startTraining,
       resetTraining,
-      goToTaskList
+      viewCurrentTrainStatus,
+      chartRef,
     };
   }
 });
@@ -823,26 +816,53 @@ export default defineComponent({
 }
 
 .train-log-panel {
-  margin-bottom: 20px;
-  background: #f7f8fa;
-  padding: 16px;
-  border-radius: 6px;
+  margin-bottom: 25px;
+  background-color: #fff;
+  padding: 20px 20px 10px 20px; /* 上下内边距更紧凑 */
+  border-radius: 10px;          /* 圆角更柔和 */
+  border: 1px solid #e5e6eb;    /* 更浅的边框色 */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06); /* 更轻的阴影 */
+  text-align: left;
+  position: relative;
+}
+
+.train-log-panel h4 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  border-bottom: 1px solid #f5f5f5;
+  padding-bottom: 6px;
+}
+
+.train-log-panel .el-descriptions {
+  margin-top: 8px;
+}
+
+.train-log-chart {
+  width: 100%;
+  height: 300px;
+  margin-top: 18px; /* 顶部间距更小 */
+  background: #fafbfc; /* 更柔和的背景色 */
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border: 1px solid #f0f0f0;
+  padding: 6px 4px 4px 4px; /* 更紧凑的内边距 */
+  transition: box-shadow 0.2s;
 }
 
 @media (max-width: 768px) {
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .action-row {
     flex-direction: column;
   }
-  
+
   .action-row .el-button {
     margin-top: 10px;
     width: 100%;
   }
 }
 </style>
-
-
