@@ -34,8 +34,8 @@ export default {
       // 登录表单数据
       loginForm: {
         username: '',
-        password: ''
-      }
+        password: '',
+      },
     };
   },
   methods: {
@@ -46,10 +46,10 @@ export default {
         const response = await axios.post('http://localhost:9090/api/login', null, {
           params: {
             username: this.loginForm.username,
-            password: this.loginForm.password
-          }
+            password: this.loginForm.password,
+          },
         });
-        
+
         if (response.data.code === 200) {
           // 登录成功
           ElMessage.success(response.data.message);
@@ -62,7 +62,7 @@ export default {
           this.$router.push({path: path === '/' || path === undefined ? '/index' : path});
         } else {
           // 登录失败
-          ElMessage.error(response.data.code + ": " + response.data.message);
+          ElMessage.error(response.data.code + ': ' + response.data.message);
           this.clearForm();
         }
       } catch (error) {
@@ -79,8 +79,8 @@ export default {
     // 导航到注册页面
     navigateToRegister() {
       this.$router.push('/register');
-    }
-  }
+    },
+  },
 };
 </script>
 

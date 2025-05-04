@@ -16,59 +16,81 @@
           <span v-show="logoTextShow" class="logo-text">缺陷甄别系统</span>
         </transition>
       </div>
-      
+
       <!-- 图像采集与传输菜单 -->
       <el-sub-menu index="img-acp-transfer">
         <template v-slot:title>
-          <el-icon><Picture /></el-icon>
+          <el-icon>
+            <Picture/>
+          </el-icon>
           <span>图像采集与传输</span>
         </template>
-        <el-menu-item index="/filesUpload" class="submenu-item">
-          <el-icon><Upload /></el-icon>
+        <el-menu-item class="submenu-item" index="/filesUpload">
+          <el-icon>
+            <Upload/>
+          </el-icon>
           <span>文件上传</span>
         </el-menu-item>
-        <el-menu-item index="/dataCollection" class="submenu-item">
-          <el-icon><DataLine /></el-icon>
+        <el-menu-item class="submenu-item" index="/dataCollection">
+          <el-icon>
+            <DataLine/>
+          </el-icon>
           <span>实时数据采集</span>
         </el-menu-item>
-        <el-menu-item index="/userList" class="submenu-item">
-          <el-icon><User /></el-icon>
+        <el-menu-item class="submenu-item" index="/userList">
+          <el-icon>
+            <User/>
+          </el-icon>
           <span>用户管理</span>
         </el-menu-item>
       </el-sub-menu>
-      
+
       <!-- 产品缺陷甄别菜单 -->
       <el-sub-menu index="def-scan">
         <template v-slot:title>
-          <el-icon><Monitor /></el-icon>
+          <el-icon>
+            <Monitor/>
+          </el-icon>
           <span>产品缺陷甄别</span>
         </template>
-        <el-menu-item index="/defectDetection" class="submenu-item">
-          <el-icon><Search /></el-icon>
+        <el-menu-item class="submenu-item" index="/defectDetection">
+          <el-icon>
+            <Search/>
+          </el-icon>
           <span>缺陷检查</span>
         </el-menu-item>
-        <el-menu-item index="/showResult" class="submenu-item">
-          <el-icon><Document /></el-icon>
+        <el-menu-item class="submenu-item" index="/showResult">
+          <el-icon>
+            <Document/>
+          </el-icon>
           <span>检查结果</span>
         </el-menu-item>
       </el-sub-menu>
-      
+
       <!-- 模型管理菜单 -->
       <el-sub-menu index="mod-mgt">
         <template v-slot:title>
-          <el-icon><SetUp /></el-icon>
+          <el-icon>
+            <SetUp/>
+          </el-icon>
           <span>模型管理</span>
         </template>
-        <el-menu-item index="/modelManagement" class="submenu-item">
-          <el-icon><Connection /></el-icon>
+        <el-menu-item class="submenu-item" index="/modelManagement">
+          <el-icon>
+            <Connection/>
+          </el-icon>
           <span>算法模型管理</span>
         </el-menu-item>
-        <el-menu-item index="/weightFileManagement" class="submenu-item">
-          <el-icon><Files /></el-icon>
+        <el-menu-item class="submenu-item" index="/weightFileManagement">
+          <el-icon>
+            <Files/>
+          </el-icon>
           <span>权重文件管理</span>
         </el-menu-item>
-        <el-menu-item index="/modelTraining" class="submenu-item">
-          <el-icon><Cpu /></el-icon>
+        <el-menu-item class="submenu-item" index="/modelTraining">
+          <el-icon>
+            <Cpu/>
+          </el-icon>
           <span>模型训练</span>
         </el-menu-item>
       </el-sub-menu>
@@ -77,19 +99,31 @@
 </template>
 
 <script>
-import {Picture, Upload, DataLine, User, Monitor, Search, Document, SetUp, Connection, Files, Cpu} from "@element-plus/icons-vue";
+import {
+  Connection,
+  Cpu,
+  DataLine,
+  Document,
+  Files,
+  Monitor,
+  Picture,
+  Search,
+  SetUp,
+  Upload,
+  User,
+} from '@element-plus/icons-vue';
 
 export default {
   name: 'SideMenu',
   props: {
     isCollapse: Boolean,  // 侧边栏是否折叠
     sideWidth: Number,    // 侧边栏宽度
-    logoTextShow: Boolean // 是否显示logo文字
+    logoTextShow: Boolean, // 是否显示logo文字
   },
   components: {
-    Picture, Upload, DataLine, User, Monitor, Search, Document, SetUp, Connection, Files, Cpu
-  }
-}
+    Picture, Upload, DataLine, User, Monitor, Search, Document, SetUp, Connection, Files, Cpu,
+  },
+};
 </script>
 
 <style scoped>

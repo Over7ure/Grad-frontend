@@ -10,7 +10,8 @@
     <ul>
       <li><a href="https://router.vuejs.org" rel="noopener" target="_blank">vue-router</a></li>
       <li><a href="https://vuex.vuejs.org" rel="noopener" target="_blank">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" rel="noopener" target="_blank">vue-devtools</a></li>
+      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" rel="noopener" target="_blank">vue-devtools</a>
+      </li>
       <li><a href="https://vue-loader.vuejs.org" rel="noopener" target="_blank">vue-loader</a></li>
     </ul>
   </div>
@@ -21,9 +22,9 @@ export default {
   name: 'HelloWorld',
   // 接收父组件传入的消息
   props: {
-    msg: String
-  }
-}
+    msg: String,
+  },
+};
 </script>
 
 <style scoped>

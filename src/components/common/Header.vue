@@ -1,7 +1,7 @@
 <template>
   <el-header class="home-container-header">
     <div class="collapse-button-container">
-      <span class="collapse-button" @click="collapse" :class="{'is-collapsed': isCollapse}">
+      <span :class="{'is-collapsed': isCollapse}" class="collapse-button" @click="collapse">
         <el-icon>
           <Component :is="isCollapse ? 'Expand' : 'Fold'"/>
         </el-icon>
@@ -25,14 +25,14 @@
 </template>
 
 <script>
-import {ArrowDown, Expand, Fold} from "@element-plus/icons-vue";
+import {ArrowDown, Expand, Fold} from '@element-plus/icons-vue';
 
 export default {
   name: 'HomeContainerHeader',
   // 接收父组件传递的属性
   props: {
     isCollapse: Boolean, // 侧边栏是否折叠
-    loginUser: String    // 当前登录用户名
+    loginUser: String,    // 当前登录用户名
   },
   components: {ArrowDown, Expand, Fold},
   computed: {
@@ -44,7 +44,7 @@ export default {
         return matched.map(r => r.name).join(' / ');
       }
       return route.name;
-    }
+    },
   },
   methods: {
     // 触发侧边栏折叠/展开事件
@@ -54,9 +54,9 @@ export default {
     // 触发退出登录事件
     logout() {
       this.$emit('logout');
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>

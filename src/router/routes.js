@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router';
 
 // 路由配置
 const routes = [
@@ -15,8 +15,8 @@ const routes = [
 				component: () => import('@/components/HelloWorld.vue'),
 				props: {msg: 'Hello World'},
 				meta: {
-					requireAuth: true // 需要认证
-				}
+					requireAuth: true, // 需要认证
+				},
 			},
 			// 用户管理模块
 			{
@@ -24,8 +24,8 @@ const routes = [
 				name: '用户管理',
 				component: () => import('@/pages/home/img-acq-transfer/UserList.vue'),
 				meta: {
-					requireAuth: true
-				}
+					requireAuth: true,
+				},
 			},
 			// 文件传输模块
 			{
@@ -33,16 +33,16 @@ const routes = [
 				name: '文件上传',
 				component: () => import('@/pages/home/img-acq-transfer/FilesUpload.vue'),
 				meta: {
-					requireAuth: true
-				}
+					requireAuth: true,
+				},
 			},
 			{
 				path: '/dataCollection',
 				name: '实时数据采集',
 				component: () => import('@/pages/home/img-acq-transfer/DataCollection.vue'),
 				meta: {
-					requireAuth: true
-				}
+					requireAuth: true,
+				},
 			},
 			// 缺陷检测模块
 			{
@@ -50,16 +50,16 @@ const routes = [
 				name: '缺陷检测',
 				component: () => import('@/pages/home/def-scan/DefectDetection.vue'),
 				meta: {
-					requireAuth: true
-				}
+					requireAuth: true,
+				},
 			},
 			{
 				path: '/showResult',
 				name: '检查结果',
 				component: () => import('@/pages/home/def-scan/ShowResult.vue'),
 				meta: {
-					requireAuth: true
-				}
+					requireAuth: true,
+				},
 			},
 			// 模型管理模块
 			{
@@ -67,44 +67,44 @@ const routes = [
 				name: '算法模型管理',
 				component: () => import('@/pages/home/mod-mgt/ModelManagement.vue'),
 				meta: {
-					requireAuth: true
-				}
+					requireAuth: true,
+				},
 			},
 			{
 				path: '/weightFileManagement',
 				name: '权重文件管理',
 				component: () => import('@/pages/home/mod-mgt/WeightFileManagement.vue'),
 				meta: {
-					requireAuth: true
-				}
+					requireAuth: true,
+				},
 			},
 			{
 				path: '/modelTraining',
 				name: '模型训练',
 				component: () => import('@/pages/home/mod-mgt/ModelTraining.vue'),
 				meta: {
-					requireAuth: true
-				}
-			}
-		]
+					requireAuth: true,
+				},
+			},
+		],
 	},
 	// 认证相关路由
 	{
 		path: '/login',
 		name: 'Login',
-		component: () => import('@/components/Login.vue')
+		component: () => import('@/components/Login.vue'),
 	},
 	{
 		path: '/register',
 		name: 'Register',
-		component: () => import('@/components/Register.vue')
-	}
-]
+		component: () => import('@/components/Register.vue'),
+	},
+];
 
 // 创建路由实例
 const router = createRouter({
 	history: createWebHistory(),
-	routes
-})
+	routes,
+});
 
-export default router
+export default router;

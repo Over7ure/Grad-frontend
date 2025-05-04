@@ -3,25 +3,25 @@
   <div class="search-container">
     <el-input v-model="fileName" :prefix-icon="Search" class="search-input" clearable
               placeholder="请输入权重文件名称"></el-input>
-    <el-button :icon="Search" class="search-button" type="primary" native-type="button" @click="load">搜索</el-button>
+    <el-button :icon="Search" class="search-button" native-type="button" type="primary" @click="load">搜索</el-button>
   </div>
 
   <!-- 权重文件表格 -->
   <el-table :data="tableData" :header-cell-class-name="headerBg" border stripe @sort-change="handleSortChange">
-    <el-table-column label="文件ID" prop="file_id" width="320" sortable></el-table-column>
-    <el-table-column label="文件名称" prop="file_real_name" width="120" sortable></el-table-column>
-    <el-table-column label="文件类型" prop="file_type" width="150" sortable></el-table-column>
+    <el-table-column label="文件ID" prop="file_id" sortable width="320"></el-table-column>
+    <el-table-column label="文件名称" prop="file_real_name" sortable width="120"></el-table-column>
+    <el-table-column label="文件类型" prop="file_type" sortable width="150"></el-table-column>
     <el-table-column label="文件路径" prop="file_path" sortable></el-table-column>
-    <el-table-column label="文件备注" prop="file_comment" width="150" sortable></el-table-column>
-    <el-table-column label="上传时间" prop="file_create_time" width="170" sortable></el-table-column>
+    <el-table-column label="文件备注" prop="file_comment" sortable width="150"></el-table-column>
+    <el-table-column label="上传时间" prop="file_create_time" sortable width="170"></el-table-column>
     <!-- 新增选择列 -->
     <el-table-column align="center" label="选择" width="100">
       <template v-slot="scope">
         <el-button
-          type="primary"
-          size="small"
-          :plain="selectedRawId !== scope.row.raw_file_id"
-          @click="selectWeight(scope.row)"
+            :plain="selectedRawId !== scope.row.raw_file_id"
+            size="small"
+            type="primary"
+            @click="selectWeight(scope.row)"
         >
           {{ selectedRawId === scope.row.raw_file_id ? '已选择' : '选择' }}
         </el-button>
@@ -45,13 +45,13 @@
 
 <script>
 import axios from 'axios';
-import { Search } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import {Search} from '@element-plus/icons-vue';
+import {ElMessage} from 'element-plus';
 
 export default {
   name: 'WeightFileManagement',
   computed: {
-    Search() { return Search }
+    Search() { return Search; },
   },
   data() {
     return {
@@ -66,15 +66,14 @@ export default {
       sortProp: '',
       sortOrder: '',
       selectedRawId: null, // 新增：当前选中的原始ID
-    }
+    };
   },
   created() {
     this.load();
   },
   methods: {
     load() {
-      axios.get('/docker_files/data_record.csv', { responseType: 'text' })
-      .then(res => {
+      axios.get('/docker_files/data_record.csv', {responseType: 'text'}).then(res => {
         try {
           const data = res.data;
           const lines = data.split('\n').filter(line => line.trim() !== '');
@@ -112,17 +111,17 @@ export default {
                   const num = parseFloat(obj.file_create_time);
                   const dt = new Date(num);
                   obj.file_create_time = dt.getFullYear() + '-' +
-                    String(dt.getMonth()+1).padStart(2, '0') + '-' +
-                    String(dt.getDate()).padStart(2, '0') + ' ' +
-                    String(dt.getHours()).padStart(2, '0') + ':' +
-                    String(dt.getMinutes()).padStart(2, '0') + ':' +
-                    String(dt.getSeconds()).padStart(2, '0');
+                      String(dt.getMonth() + 1).padStart(2, '0') + '-' +
+                      String(dt.getDate()).padStart(2, '0') + ' ' +
+                      String(dt.getHours()).padStart(2, '0') + ':' +
+                      String(dt.getMinutes()).padStart(2, '0') + ':' +
+                      String(dt.getSeconds()).padStart(2, '0');
                 } else if (obj.file_create_time.length === 12) {
-                  obj.file_create_time = obj.file_create_time.substring(0,4) + '-' +
-                    obj.file_create_time.substring(4,6) + '-' +
-                    obj.file_create_time.substring(6,8) + ' ' +
-                    obj.file_create_time.substring(8,10) + ':' +
-                    obj.file_create_time.substring(10,12);
+                  obj.file_create_time = obj.file_create_time.substring(0, 4) + '-' +
+                      obj.file_create_time.substring(4, 6) + '-' +
+                      obj.file_create_time.substring(6, 8) + ' ' +
+                      obj.file_create_time.substring(8, 10) + ':' +
+                      obj.file_create_time.substring(10, 12);
                 }
               }
               // 只保留权重文件（.pt）
@@ -137,8 +136,7 @@ export default {
           console.error('解析CSV数据失败:', error);
           ElMessage.error('无法解析文件数据: ' + error.message);
         }
-      })
-      .catch(error => {
+      }).catch(error => {
         console.error('加载CSV文件失败:', error);
         ElMessage.error('加载文件数据失败: ' + error.message);
       });
@@ -149,7 +147,7 @@ export default {
       let currentValue = '';
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        if (char === '"' && (i === 0 || line[i-1] !== '\\')) {
+        if (char === '"' && (i === 0 || line[i - 1] !== '\\')) {
           inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
           values.push(currentValue);
@@ -166,7 +164,7 @@ export default {
       if (this.fileName) {
         const searchTerm = this.fileName.toLowerCase();
         filtered = filtered.filter(item =>
-          item.file_real_name.toLowerCase().includes(searchTerm)
+            item.file_real_name.toLowerCase().includes(searchTerm),
         );
       }
       if (this.sortProp && this.sortOrder) {
@@ -213,25 +211,29 @@ export default {
       this.selectedRawId = row.raw_file_id;
       // 可根据需要将ID存储到localStorage或emit事件
       localStorage.setItem('selectedWeightRawId', this.selectedRawId);
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
 .search-container {
   margin: 10px 0;
 }
+
 .search-input {
   margin-left: 5px;
   width: 200px;
 }
+
 .search-button {
   margin-left: 5px;
 }
+
 .pagination-container {
   padding: 10px 0;
 }
+
 .headerBg {
   background: #eee !important;
   color: grey;

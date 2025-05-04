@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import * as echarts from 'echarts'
+import * as echarts from 'echarts';
 
 export default {
   name: 'ShowResult',
@@ -59,25 +59,25 @@ export default {
       selectedDate: '',
       barChart: null,
       pieChart: null,
-      currentData: null
-    }
+      currentData: null,
+    };
   },
   methods: {
     fetchData() {
       this.$axios.get('/api/prodHistory/findAll').then(response => {
-        this.prodDataList = response.data
+        this.prodDataList = response.data;
         // 为每条数据计算良品率
         this.prodDataList.forEach(item => {
-          item.yieldRate = item.prodNum > 0 ? 
-            ((item.prodNum - item.defectNum) / item.prodNum * 100) : 0;
+          item.yieldRate = item.prodNum > 0 ?
+              ((item.prodNum - item.defectNum) / item.prodNum * 100) : 0;
         });
-        
-        if(this.prodDataList.length > 0) {
-          this.selectedDate = this.prodDataList[0].prodDate
-          this.currentData = this.prodDataList[0]
-          this.updateCharts()
+
+        if (this.prodDataList.length > 0) {
+          this.selectedDate = this.prodDataList[0].prodDate;
+          this.currentData = this.prodDataList[0];
+          this.updateCharts();
         }
-      })
+      });
     },
     handleDateChange() {
       if (this.selectedDate === '*Overall_history') {
@@ -95,89 +95,90 @@ export default {
           pinNum: 0,
           bubbleNum: 0,
           scratchNum: 0,
-          tinAshNum: 0
+          tinAshNum: 0,
         });
         // 计算总数据的良品率
-        this.currentData.yieldRate = this.currentData.prodNum > 0 ? 
-          ((this.currentData.prodNum - this.currentData.defectNum) / this.currentData.prodNum * 100) : 0;
+        this.currentData.yieldRate = this.currentData.prodNum > 0 ?
+            ((this.currentData.prodNum - this.currentData.defectNum) / this.currentData.prodNum * 100) : 0;
       } else {
         this.currentData = this.prodDataList.find(item => item.prodDate === this.selectedDate);
         // 此处不需要再计算良品率，因为在fetchData中已经为每条数据计算过了
       }
-      this.updateCharts()
+      this.updateCharts();
     },
     formatDate(date) {
       return date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
     },
     updateCharts() {
-      if(!this.currentData) return
-      this.updateBarChart()
-      this.updatePieChart()
+      if (!this.currentData) return;
+      this.updateBarChart();
+      this.updatePieChart();
     },
     updateBarChart() {
       const option = {
         title: {
           text: '',
           left: 'center',
-          top: 0
+          top: 0,
         },
         tooltip: {
           trigger: 'axis',
           axisPointer: {
-            type: 'shadow'
-          }
+            type: 'shadow',
+          },
         },
         grid: {
           left: '3%',
           right: '4%',
           bottom: '3%',
-          containLabel: true
+          containLabel: true,
         },
         xAxis: {
           type: 'category',
-          data: ['生产数量', '缺陷数量', '良品数量']
+          data: ['生产数量', '缺陷数量', '良品数量'],
         },
         yAxis: {
-          type: 'value'
+          type: 'value',
         },
-        series: [{
-          name: '数量',
-          type: 'bar',
-          barWidth: '60%',
-          data: [
-            this.currentData.prodNum,
-            this.currentData.defectNum,
-            this.currentData.prodNum - this.currentData.defectNum
-          ],
-          itemStyle: {
-            color: function(params) {
-              const colorList = ['#5470c6', '#ee6666', '#91cc75'];
-              return colorList[params.dataIndex];
-            }
-          }
-        }]
+        series: [
+          {
+            name: '数量',
+            type: 'bar',
+            barWidth: '60%',
+            data: [
+              this.currentData.prodNum,
+              this.currentData.defectNum,
+              this.currentData.prodNum - this.currentData.defectNum,
+            ],
+            itemStyle: {
+              color: function(params) {
+                const colorList = ['#5470c6', '#ee6666', '#91cc75'];
+                return colorList[params.dataIndex];
+              },
+            },
+          }],
       };
       this.barChart.setOption(option);
     },
     updatePieChart() {
       // 计算缺陷类型数据
       const defectTypes = [
-        { value: this.currentData.pinNum, name: '针孔缺陷' },
-        { value: this.currentData.bubbleNum, name: '气泡缺陷' },
-        { value: this.currentData.scratchNum, name: '划痕缺陷' },
-        { value: this.currentData.tinAshNum, name: '锡灰缺陷' }
+        {value: this.currentData.pinNum, name: '针孔缺陷'},
+        {value: this.currentData.bubbleNum, name: '气泡缺陷'},
+        {value: this.currentData.scratchNum, name: '划痕缺陷'},
+        {value: this.currentData.tinAshNum, name: '锡灰缺陷'},
       ];
 
       const option = {
         tooltip: {
           trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)'
+          formatter: '{a} <br/>{b}: {c} ({d}%)',
         },
         legend: {
           orient: 'vertical',
           left: 10,
           top: 'center',
-          data: defectTypes.map(item => item.name)
+          data: defectTypes.map(item => item.name),
         },
         series: [
           {
@@ -188,25 +189,25 @@ export default {
             itemStyle: {
               borderRadius: 10,
               borderColor: '#fff',
-              borderWidth: 2
+              borderWidth: 2,
             },
             label: {
               show: false,
-              position: 'center'
+              position: 'center',
             },
             emphasis: {
               label: {
                 show: true,
                 fontSize: '14',
-                fontWeight: 'bold'
-              }
+                fontWeight: 'bold',
+              },
             },
             labelLine: {
-              show: false
+              show: false,
             },
-            data: defectTypes
-          }
-        ]
+            data: defectTypes,
+          },
+        ],
       };
       this.pieChart.setOption(option);
     },
@@ -219,7 +220,7 @@ export default {
         this.barChart.resize();
         this.pieChart.resize();
       });
-    }
+    },
   },
   mounted() {
     this.initCharts();
@@ -236,8 +237,8 @@ export default {
     if (this.pieChart) {
       this.pieChart.dispose();
     }
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
@@ -332,15 +333,15 @@ export default {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .date-selector {
     margin-top: 10px;
   }
-  
+
   .data-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .charts-container {
     grid-template-columns: 1fr;
   }

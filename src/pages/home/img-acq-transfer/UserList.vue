@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import {Bottom, CirclePlus, Edit, Remove, Search, Top} from "@element-plus/icons-vue";
+import {Bottom, CirclePlus, Edit, Remove, Search, Top} from '@element-plus/icons-vue';
 import {ElMessage} from 'element-plus';
 
 export default {
@@ -66,23 +66,23 @@ export default {
   computed: {
     // 图标组件计算属性
     Edit() {
-      return Edit
+      return Edit;
     },
     Top() {
-      return Top
+      return Top;
     },
     Remove() {
-      return Remove
+      return Remove;
     },
     Bottom() {
-      return Bottom
+      return Bottom;
     },
     CirclePlus() {
-      return CirclePlus
+      return CirclePlus;
     },
     Search() {
-      return Search
-    }
+      return Search;
+    },
   },
   data() {
     return {
@@ -91,12 +91,12 @@ export default {
       pageNum: 1,        // 当前页码
       pageSize: 6,       // 每页数据量
       username: '',      // 用户名搜索关键字
-      headerBg: 'headerBg' // 表头样式类名
-    }
+      headerBg: 'headerBg', // 表头样式类名
+    };
   },
   created() {
     // 组件创建时加载数据
-    this.load()
+    this.load();
   },
   methods: {
     // 加载用户数据列表
@@ -105,31 +105,31 @@ export default {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
-          username: this.username
-        }
+          username: this.username,
+        },
       }).then(res => {
-        this.tableData = res.data.data
-        this.total = res.data.total
+        this.tableData = res.data.data;
+        this.total = res.data.total;
         if (res.data.code) {
-          ElMessage.error(res.data.msg)
+          ElMessage.error(res.data.msg);
         }
       }).catch(error => {
-        console.error(error)
-        ElMessage.error(error)
-      })
+        console.error(error);
+        ElMessage.error(error);
+      });
     },
     // 处理页面大小变化
     handleSizeChange(pageSize) {
-      this.pageSize = pageSize
-      this.load()
+      this.pageSize = pageSize;
+      this.load();
     },
     // 处理页码变化
     handleCurrentChange(pageNum) {
-      this.pageNum = pageNum
-      this.load()
+      this.pageNum = pageNum;
+      this.load();
     },
-  }
-}
+  },
+};
 </script>
 
 <style scoped>

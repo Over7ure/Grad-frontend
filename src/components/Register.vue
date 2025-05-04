@@ -6,7 +6,8 @@
     <!-- 邮箱输入框 -->
     <el-form-item>
       <!-- 修改邮箱输入为自动补全 -->
-      <el-autocomplete v-model="registerForm.email" placeholder="Email" :fetch-suggestions="querySearch"></el-autocomplete>
+      <el-autocomplete v-model="registerForm.email" :fetch-suggestions="querySearch"
+                       placeholder="Email"></el-autocomplete>
     </el-form-item>
     <!-- 用户名输入框 -->
     <el-form-item>
@@ -26,7 +27,8 @@
     </el-form-item>
     <!-- 登录链接 -->
     <el-form-item style="width: 100%; text-align: center;">
-      <span class="login-text">Already have an account? <span class="login-link" @click="navigateToLogin">Login</span></span>
+      <span class="login-text">Already have an account? <span class="login-link"
+                                                              @click="navigateToLogin">Login</span></span>
     </el-form-item>
   </el-form>
   </body>
@@ -46,10 +48,10 @@ export default {
         email: '',
         username: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
       },
       // 新增常用邮箱域名列表
-      emailDomains: ['gmail.com', 'outlook.com', 'qq.com', '163.com']
+      emailDomains: ['gmail.com', 'outlook.com', 'qq.com', '163.com'],
     };
   },
   methods: {
@@ -70,17 +72,17 @@ export default {
         ElMessage.error('Password must be at least 6 characters long');
         return;
       }
-      
+
       try {
         // 发送注册请求到后端API
         const response = await axios.post('http://localhost:9090/api/register', null, {
           params: {
             email: this.registerForm.email,
             username: this.registerForm.username,
-            password: this.registerForm.password
-          }
+            password: this.registerForm.password,
+          },
         });
-        
+
         if (response.data.code === 200) {
           // 注册成功
           ElMessage.success(response.data.message);
@@ -88,7 +90,7 @@ export default {
           this.$router.push('/login');
         } else {
           // 注册失败
-          ElMessage.error(response.data.code + ": " + response.data.message);
+          ElMessage.error(response.data.code + ': ' + response.data.message);
           this.clearForm();
         }
       } catch (error) {
@@ -103,7 +105,7 @@ export default {
         cb([]);
       } else {
         const results = this.emailDomains.map(domain => {
-          return { value: queryString + '@' + domain }
+          return {value: queryString + '@' + domain};
         });
         cb(results);
       }
@@ -117,8 +119,8 @@ export default {
     },
     navigateToLogin() {
       this.$router.push('/login');
-    }
-  }
+    },
+  },
 };
 </script>
 

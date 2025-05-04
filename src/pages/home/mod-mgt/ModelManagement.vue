@@ -5,7 +5,7 @@
 <script>
 export default {
   name: 'ModelManagement',
-}
+};
 </script>
 
 <style scoped>

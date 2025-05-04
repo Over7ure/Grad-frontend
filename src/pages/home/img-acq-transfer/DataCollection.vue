@@ -1,7 +1,7 @@
 <template>
   <div class="data-collection-container">
     <div class="webcam-section">
-      <div class="webcam-display" :class="{ 'offline': !cameraOnline }">
+      <div :class="{ 'offline': !cameraOnline }" class="webcam-display">
         <video v-show="cameraOnline" ref="webcam" autoplay muted playsinline></video>
         <div v-if="!cameraOnline" class="camera-offline">
           <span class="camera-offline-icon">📷</span>
@@ -12,10 +12,10 @@
         <button class="control-button" @click="toggleCamera">
           {{ cameraOnline ? '关闭摄像头' : '开启摄像头' }}
         </button>
-        <button class="control-button" :disabled="!cameraOnline" @click="captureImage">
+        <button :disabled="!cameraOnline" class="control-button" @click="captureImage">
           拍摄照片
         </button>
-        <button class="control-button" :disabled="!cameraOnline" @click="toggleContinuousCapture">
+        <button :disabled="!cameraOnline" class="control-button" @click="toggleContinuousCapture">
           {{ continuousCapture ? '停止连续拍摄' : '开始连续拍摄' }}
         </button>
       </div>
@@ -25,10 +25,10 @@
       <div class="settings-card">
         <h2 class="card-title">摄像头状态</h2>
         <div class="camera-status">
-          <div class="status-indicator" :class="{ 'online': cameraOnline, 'offline': !cameraOnline }"></div>
+          <div :class="{ 'online': cameraOnline, 'offline': !cameraOnline }" class="status-indicator"></div>
           <span>{{ cameraOnline ? '在线' : '离线' }}</span>
         </div>
-        <div class="camera-info" v-if="cameraOnline">
+        <div v-if="cameraOnline" class="camera-info">
           <p><strong>分辨率:</strong> {{ cameraResolution }}</p>
           <p><strong>帧率:</strong> {{ frameRate }}</p>
         </div>
@@ -38,7 +38,7 @@
         <h2 class="card-title">拍摄设置</h2>
         <div class="setting-item">
           <label>连续拍摄间隔 (秒)</label>
-          <input type="number" v-model="captureInterval" min="1" max="60" :disabled="continuousCapture">
+          <input v-model="captureInterval" :disabled="continuousCapture" max="60" min="1" type="number">
         </div>
       </div>
 
@@ -48,7 +48,7 @@
           <div v-if="captureLogs.length === 0" class="empty-log">
             暂无捕获记录
           </div>
-          <div v-else class="log-entry" v-for="(log, index) in captureLogs" :key="index">
+          <div v-for="(log, index) in captureLogs" v-else :key="index" class="log-entry">
             <span class="log-time">{{ log.time }}</span>
             <span class="log-message">{{ log.message }}</span>
           </div>
@@ -71,8 +71,8 @@ export default {
       continuousCapture: false,
       captureTimer: null,
       captureLogs: [],
-      captureCount: 0
-    }
+      captureCount: 0,
+    };
   },
   methods: {
     async toggleCamera() {
@@ -84,18 +84,18 @@ export default {
     },
     async startCamera() {
       try {
-        this.stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { width: 1280, height: 720 } 
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: {width: 1280, height: 720},
         });
-        
+
         // 设置视频源
         if (this.$refs.webcam) {
           this.$refs.webcam.srcObject = this.stream;
-          
+
           // 等待DOM更新完成
           await this.$nextTick();
           this.cameraOnline = true;
-          
+
           // 获取分辨率和帧率信息
           const videoTrack = this.stream.getVideoTracks()[0];
           if (videoTrack) {
@@ -103,7 +103,7 @@ export default {
             this.cameraResolution = settings.width + 'x' + settings.height;
             this.frameRate = settings.frameRate ? settings.frameRate.toFixed(1) + 'fps' : '未知';
           }
-          
+
           this.addLog('摄像头已开启');
         } else {
           // 直接处理找不到视频元素的情况而不是抛出异常
@@ -127,10 +127,10 @@ export default {
         this.stream.getTracks().forEach(track => track.stop());
         this.stream = null;
       }
-      
+
       this.cameraOnline = false;
       this.addLog('摄像头已关闭');
-      
+
       if (this.continuousCapture) {
         this.toggleContinuousCapture();
       }
@@ -159,21 +159,21 @@ export default {
       const timeString = now.toLocaleTimeString();
       this.captureLogs.unshift({
         time: timeString,
-        message: message
+        message: message,
       });
-      
+
       if (this.captureLogs.length > 50) {
         this.captureLogs.pop();
       }
-    }
+    },
   },
   beforeUnmount() {
     this.stopCamera();
     if (this.captureTimer) {
       clearInterval(this.captureTimer);
     }
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
