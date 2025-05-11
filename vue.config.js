@@ -9,39 +9,6 @@ module.exports = defineConfig({
 				changeOrigin: true,
 				pathRewrite: {'^/api': '/api'},
 			},
-
-			'/upload_files': {
-				target: 'http://localhost:5130',
-				changeOrigin: true,
-			},
-			'/create_train': {
-				target: 'http://localhost:5130',
-				changeOrigin: true,
-			},
-			'/upload_datasets': {
-				target: 'http://localhost:5130',
-				changeOrigin: true,
-			},
-			'/start_train': {
-				target: 'http://localhost:5130',
-				changeOrigin: true,
-			},
-			'/train_log': {
-				target: 'http://localhost:5130',
-				changeOrigin: true,
-			},
-			'/start_val': {
-				target: 'http://localhost:5130',
-				changeOrigin: true,
-			},
-			'/start_predict': {
-				target: 'http://localhost:5130',
-				changeOrigin: true,
-			},
-			'/get_files': {
-				target: 'http://localhost:5130',
-				changeOrigin: true,
-			},
 		},
 	},
 });

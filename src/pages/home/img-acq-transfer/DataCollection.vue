@@ -3,6 +3,7 @@
     <div class="webcam-section">
       <div :class="{ 'offline': !cameraOnline }" class="webcam-display">
         <video v-show="cameraOnline" ref="webcam" autoplay muted playsinline></video>
+        <canvas ref="overlay" class="overlay-canvas"></canvas>
         <div v-if="!cameraOnline" class="camera-offline">
           <span class="camera-offline-icon">📷</span>
           <span>摄像头未开启</span>
@@ -17,6 +18,9 @@
         </button>
         <button :disabled="!cameraOnline" class="control-button" @click="toggleContinuousCapture">
           {{ continuousCapture ? '停止连续拍摄' : '开始连续拍摄' }}
+        </button>
+        <button :disabled="!cameraOnline" class="control-button" @click="toggleContinuousDetect">
+          {{ continuousDetect ? '停止缺陷检测' : '开始缺陷检测' }}
         </button>
       </div>
     </div>
@@ -59,6 +63,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   name: 'DataCollection',
   data() {
@@ -69,9 +74,12 @@ export default {
       frameRate: '30',
       captureInterval: 3,
       continuousCapture: false,
+      continuousDetect: false,
       captureTimer: null,
+      detectTimer: null,
       captureLogs: [],
       captureCount: 0,
+      detecting: false, // 新增标志
     };
   },
   methods: {
@@ -88,15 +96,12 @@ export default {
           video: {width: 1280, height: 720},
         });
 
-        // 设置视频源
-        if (this.$refs.webcam) {
+        if (this.$refs.webcam && this.$refs.overlay) {
           this.$refs.webcam.srcObject = this.stream;
 
-          // 等待DOM更新完成
           await this.$nextTick();
           this.cameraOnline = true;
 
-          // 获取分辨率和帧率信息
           const videoTrack = this.stream.getVideoTracks()[0];
           if (videoTrack) {
             const settings = videoTrack.getSettings();
@@ -104,12 +109,17 @@ export default {
             this.frameRate = settings.frameRate ? settings.frameRate.toFixed(1) + 'fps' : '未知';
           }
 
+          this.$refs.webcam.onloadedmetadata = () => {
+            const video = this.$refs.webcam;
+            const canvas = this.$refs.overlay;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+          };
+
           this.addLog('摄像头已开启');
         } else {
-          // 直接处理找不到视频元素的情况而不是抛出异常
           console.error('找不到视频元素');
           this.addLog('初始化失败: 找不到视频元素');
-          // 确保释放摄像头资源
           if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
             this.stream = null;
@@ -154,6 +164,129 @@ export default {
         }, this.captureInterval * 1000);
       }
     },
+    toggleContinuousDetect() {
+      if (this.continuousDetect) {
+        clearInterval(this.detectTimer);
+        this.detectTimer = null;
+        this.detecting = false; // 停止检测
+        this.clearOverlay();
+        this.continuousDetect = false;
+        this.addLog('缺陷检测已停止');
+      } else {
+        this.continuousDetect = true;
+        this.detecting = true; // 开始检测
+        this.addLog('缺陷检测已开始');
+        this.detectTimer = setInterval(() => {
+          this.detectFrame();
+        }, 500);
+      }
+    },
+    async detectFrame() {
+      if (!this.detecting) return; // 若已停止则不再处理
+      const video = this.$refs.webcam;
+      if (!video) return;
+      const off = document.createElement('canvas');
+      off.width = video.videoWidth;
+      off.height = video.videoHeight;
+      const offCtx = off.getContext('2d');
+      offCtx.drawImage(video, 0, 0);
+      off.toBlob(async blob => {
+        if (!blob || !this.detecting) return; // 检查检测状态
+        // 第一步：上传图片获取files_id
+        const uploadForm = new FormData();
+        uploadForm.append('files', blob, 'frame.jpg');
+        try {
+          const uploadRes = await axios.post('http://localhost:5130/upload_files', uploadForm);
+          console.log('上传图片响应:', uploadRes.data);
+          // 获取files_id
+          const uploaded = uploadRes.data?.data?.uploaded_files?.[0]?.box_data?.[0]?.file_id;
+          if (!uploaded || !this.detecting) {
+            console.error('未获取到files_id');
+            return;
+          }
+          const files_id = uploaded;
+          const weight_file_id = this.$store.state.selectedWeightRawId;
+          console.log('files_id:', files_id, 'weight_file_id:', weight_file_id);
+
+          // 第二步：缺陷检测
+          const predictForm = new FormData();
+          predictForm.append('files_id', files_id);
+          predictForm.append('weight_file_id', weight_file_id);
+          const res = await axios.post('http://localhost:5130/start_predict', predictForm);
+          console.log('缺陷检测响应:', res.data);
+          if (!this.detecting) return; // 检查检测状态
+          const dr = res.data?.data?.detection_results;
+          if (Array.isArray(dr) && dr.length > 0) {
+            let allBoxes = [];
+            dr.forEach(item => {
+              if (Array.isArray(item.boxes)) {
+                allBoxes = allBoxes.concat(item.boxes);
+              }
+            });
+            console.log('待画框boxes:', allBoxes);
+            this.drawBoxes(allBoxes);
+
+            // 日志栏精简检测结果
+            const validBoxes = allBoxes.filter(b => b.confidence > 0.6);
+            const abnormalCount = validBoxes.filter(b => b.class_name === 0 || b.class_name === '0').length;
+            const normalCount = validBoxes.length - abnormalCount;
+            if (validBoxes.length > 0) {
+              this.addLog(
+                `检测到${validBoxes.length}个目标，异常${abnormalCount}，正常${normalCount}`
+              );
+            } else {
+              this.addLog('未检测到目标');
+            }
+            // 更新生产历史数据
+            const now = new Date();
+            const prodDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            const hasDefect = abnormalCount > 0;
+            axios.get('/api/prodHistory/saveOrUpdateToday', { params: { prodDate, hasDefect } })
+              .catch(err => console.error('更新生产历史失败:', err));
+          }
+        } catch (e) {
+          console.error('检测帧出错:', e);
+        }
+      }, 'image/jpeg');
+    },
+    drawBoxes(boxes) {
+      const canvas = this.$refs.overlay;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // boxes: [{class_name, confidence, x, y, w, h}, ...]
+      ctx.strokeStyle = 'blue';
+      ctx.lineWidth = 2;
+      ctx.font = '18px Arial';
+      ctx.fillStyle = 'blue';
+
+      for (const box of boxes) {
+        if (box.confidence > 0.6) {
+          // 坐标归一化转像素
+          const x = box.x * canvas.width;
+          const y = box.y * canvas.height;
+          const w = box.w * canvas.width;
+          const h = box.h * canvas.height;
+          console.log('画框:', { x, y, w, h, class_name: box.class_name, confidence: box.confidence }); // 调试输出
+          ctx.strokeRect(x, y, w, h);
+          if (box.class_name === 0 || box.class_name === '0') {
+            ctx.save();
+            ctx.font = '18px Arial';
+            ctx.fillStyle = 'blue';
+            ctx.textBaseline = 'top';
+            ctx.fillText('abnormal', x, Math.max(y - 22, 0));
+            ctx.restore();
+          }
+        }
+      }
+    },
+    clearOverlay() {
+      const canvas = this.$refs.overlay;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    },
     addLog(message) {
       const now = new Date();
       const timeString = now.toLocaleTimeString();
@@ -171,6 +304,9 @@ export default {
     this.stopCamera();
     if (this.captureTimer) {
       clearInterval(this.captureTimer);
+    }
+    if (this.detectTimer) {
+      clearInterval(this.detectTimer);
     }
   },
 };
@@ -209,8 +345,17 @@ export default {
 .webcam-display video {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* 修改为contain确保视频完全可见 */
-  background: #000; /* 添加黑色背景确保视频边界可见 */
+  object-fit: contain;
+  background: #000;
+}
+
+.overlay-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .camera-offline {

@@ -39,10 +39,6 @@
           <h3>生产数据统计</h3>
           <div ref="barChartContainer" class="chart-box"></div>
         </div>
-        <div class="card">
-          <h3>缺陷类型占比</h3>
-          <div ref="pieChartContainer" class="chart-box"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -58,7 +54,6 @@ export default {
       prodDataList: [],
       selectedDate: '',
       barChart: null,
-      pieChart: null,
       currentData: null,
     };
   },
@@ -84,25 +79,16 @@ export default {
         this.currentData = this.prodDataList.reduce((acc, item) => {
           acc.prodNum += item.prodNum;
           acc.defectNum += item.defectNum;
-          acc.pinNum += item.pinNum;
-          acc.bubbleNum += item.bubbleNum;
-          acc.scratchNum += item.scratchNum;
-          acc.tinAshNum += item.tinAshNum;
           return acc;
         }, {
           prodNum: 0,
           defectNum: 0,
-          pinNum: 0,
-          bubbleNum: 0,
-          scratchNum: 0,
-          tinAshNum: 0,
         });
         // 计算总数据的良品率
         this.currentData.yieldRate = this.currentData.prodNum > 0 ?
             ((this.currentData.prodNum - this.currentData.defectNum) / this.currentData.prodNum * 100) : 0;
       } else {
         this.currentData = this.prodDataList.find(item => item.prodDate === this.selectedDate);
-        // 此处不需要再计算良品率，因为在fetchData中已经为每条数据计算过了
       }
       this.updateCharts();
     },
@@ -112,7 +98,6 @@ export default {
     updateCharts() {
       if (!this.currentData) return;
       this.updateBarChart();
-      this.updatePieChart();
     },
     updateBarChart() {
       const option = {
@@ -160,65 +145,12 @@ export default {
       };
       this.barChart.setOption(option);
     },
-    updatePieChart() {
-      // 计算缺陷类型数据
-      const defectTypes = [
-        {value: this.currentData.pinNum, name: '针孔缺陷'},
-        {value: this.currentData.bubbleNum, name: '气泡缺陷'},
-        {value: this.currentData.scratchNum, name: '划痕缺陷'},
-        {value: this.currentData.tinAshNum, name: '锡灰缺陷'},
-      ];
-
-      const option = {
-        tooltip: {
-          trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)',
-        },
-        legend: {
-          orient: 'vertical',
-          left: 10,
-          top: 'center',
-          data: defectTypes.map(item => item.name),
-        },
-        series: [
-          {
-            name: '缺陷类型',
-            type: 'pie',
-            radius: ['50%', '70%'],
-            avoidLabelOverlap: false,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2,
-            },
-            label: {
-              show: false,
-              position: 'center',
-            },
-            emphasis: {
-              label: {
-                show: true,
-                fontSize: '14',
-                fontWeight: 'bold',
-              },
-            },
-            labelLine: {
-              show: false,
-            },
-            data: defectTypes,
-          },
-        ],
-      };
-      this.pieChart.setOption(option);
-    },
     initCharts() {
       this.barChart = echarts.init(this.$refs.barChartContainer);
-      this.pieChart = echarts.init(this.$refs.pieChartContainer);
 
       // 添加窗口尺寸变化时图表的自适应调整
       window.addEventListener('resize', () => {
         this.barChart.resize();
-        this.pieChart.resize();
       });
     },
   },
@@ -233,9 +165,6 @@ export default {
     // 销毁图表实例
     if (this.barChart) {
       this.barChart.dispose();
-    }
-    if (this.pieChart) {
-      this.pieChart.dispose();
     }
   },
 };
@@ -282,6 +211,9 @@ export default {
   border-radius: 8px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   padding: 20px;
+  /* 保证卡片宽度自适应父容器 */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .card h3 {
@@ -318,9 +250,12 @@ export default {
 }
 
 .charts-container {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  /* 让统计卡片与概览卡片同宽 */
+  width: 100%;
+  /* 移除grid布局 */
+  display: block;
+  margin: 0;
+  padding: 0;
 }
 
 .chart-box {
@@ -343,7 +278,9 @@ export default {
   }
 
   .charts-container {
-    grid-template-columns: 1fr;
+    /* 保持移动端同样效果 */
+    width: 100%;
+    display: block;
   }
 }
 </style>

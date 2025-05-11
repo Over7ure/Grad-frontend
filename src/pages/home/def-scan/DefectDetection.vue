@@ -71,13 +71,10 @@ export default {
   },
   created() {
     this.load(); // 调用 load 方法
-    localStorage.removeItem('predictFileId');
   },
   methods: {
     load() {
-      // 检查 localStorage
-      const storedPredictFileId = localStorage.getItem('predictFileId');
-      axios.get('/docker_files/data_record.csv', {responseType: 'text'}).then(res => {
+      axios.get('/api/csv/data_record', {responseType: 'text'}).then(res => {
         try {
           const data = res.data;
           const lines = data.split('\n').filter(line => line.trim() !== '');
@@ -102,11 +99,6 @@ export default {
               obj.file_id_raw = obj.file_id;
               // 移除 file_path 中的 "/soft/_api/data/"
               obj.file_path = obj.file_path.replace('/soft/_api/data/', '');
-
-              if (storedPredictFileId && obj.file_id_raw === storedPredictFileId) {
-                this.predictFileUrl = '/docker_files/' + encodeURIComponent(obj.file_path);
-                this.predictFileId = storedPredictFileId; // 设置 predictFileId 以便弹窗能引用
-              }
 
               // 仅保留 file_id 中末尾的 UUID 部分
               {
@@ -146,10 +138,6 @@ export default {
           }
           this.allData = result;
           this.filterAndSortData();
-
-          if (this.predictFileUrl) {
-            this.dialogVisible = true; // 直接显示预览框
-          }
 
         } catch (error) {
           console.error('解析CSV数据失败:', error);
@@ -227,33 +215,103 @@ export default {
       this.applyPagination();
     },
     async handleDetect(row) {
+      console.log('开始检测，文件信息:', row);
       const files_id = row.file_id_raw; // 使用原始ID进行请求
-      const weight_file_id = localStorage.getItem('selectedWeightRawId');
-      if (!files_id || !weight_file_id) {
-        ElMessage.error('缺少文件ID或权重文件ID');
+      let weight_file_id = this.$store.state.selectedWeightRawId; // 从Vuex store获取权重文件ID
+      console.log('使用的文件ID:', files_id, '权重文件ID:', weight_file_id);
+
+      if (!files_id) {
+        ElMessage.error('缺少文件ID');
+        console.error('检测中止：缺少文件ID');
         return;
       }
+
+      if (!weight_file_id) {
+        ElMessage.warning('未选择权重文件，请先在权重文件管理页面选择一个权重文件。');
+        console.warn('检测警告：未选择权重文件');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('files_id', files_id);
       formData.append('weight_file_id', weight_file_id);
+      console.log('准备发送的FormData:', formData);
+
       try {
-        const res = await axios.post('/start_predict', formData);
-        if (res.data && res.data.code === 200 && res.data.data.detection_results.length > 0) {
-          const result = res.data.data.detection_results[0];
-          if (result.boxes && result.boxes.length > 0) {
-            // 将 predict_file_id (后端返回的预测结果文件ID) 存储到 localStorage
-            localStorage.setItem('predictFileId', result.predict_file_id);
-            // 刷新页面以触发 created 钩子中的恢复逻辑
-            location.reload();
+        console.log('发送检测请求到 http://localhost:5130/start_predict');
+        const predictRes = await axios.post('http://localhost:5130/start_predict', formData);
+        console.log('收到检测响应:', predictRes);
+
+        let hasDefect = false;
+        if (predictRes.data && predictRes.data.code === 200 && predictRes.data.data.detection_results.length > 0) {
+          const detectionResult = predictRes.data.data.detection_results[0];
+          console.log('检测结果:', detectionResult);
+
+          if (detectionResult.boxes && detectionResult.boxes.length > 0 && detectionResult.predict_file_id) {
+            // 判断是否有异常目标
+            const validBoxes = detectionResult.boxes.filter(b => b.confidence > 0.6);
+            const abnormalCount = validBoxes.filter(b => b.class_name === 0 || b.class_name === '0').length;
+            hasDefect = abnormalCount > 0;
+            // 获取预测文件的路径
+            console.log('获取预测文件的路径，predict_file_id:', detectionResult.predict_file_id);
+            const getPathFormData = new FormData();
+            getPathFormData.append('files_id', detectionResult.predict_file_id);
+
+            try {
+              console.log('发送请求到 http://localhost:5130/get_files 以获取预测文件路径');
+              const pathRes = await axios.post('http://localhost:5130/get_files', getPathFormData);
+              console.log('收到获取路径响应:', pathRes);
+
+              if (pathRes.data && pathRes.data.code === 200 && pathRes.data.data && Array.isArray(pathRes.data.data.results) && pathRes.data.data.results.length > 0 && pathRes.data.data.results[0].file_path) {
+                let filePath = pathRes.data.data.results[0].file_path;
+                // 清理路径，与 load 方法中的处理保持一致
+                if (filePath.startsWith('/soft/_api/data/')) {
+                  filePath = filePath.replace('/soft/_api/data/', '');
+                }
+                this.predictFileUrl = '/api/image/view?path=' + encodeURIComponent(filePath);
+                this.predictFileId = detectionResult.predict_file_id; // 用于弹窗的 v-if 判断
+                this.dialogVisible = true;
+                ElMessage.success('检测到缺陷');
+                console.log('成功检测到缺陷，预览URL:', this.predictFileUrl);
+              } else {
+                ElMessage.error('获取预测文件路径失败: ' + (pathRes.data.msg || '未能从 /get_files 获取有效数据或路径不存在'));
+                console.error('从 /get_files 获取路径失败，响应数据:', pathRes.data);
+                this.predictFileUrl = '';
+                this.predictFileId = '';
+              }
+            } catch (pathError) {
+              console.error('请求 /get_files 失败:', pathError);
+              ElMessage.error('请求预测文件路径接口失败: ' + (pathError.response?.data?.msg || pathError.message || '网络错误'));
+              this.predictFileUrl = '';
+              this.predictFileId = '';
+            }
           } else {
-            ElMessage.warning('未检测到缺陷');
+            hasDefect = false;
+            ElMessage.success('未检测到缺陷');
+            this.predictFileUrl = '';
+            this.predictFileId = '';
           }
         } else {
-          ElMessage.error('检测失败: ' + (res.data.msg || '未能获取有效检测结果'));
+          hasDefect = false;
+          ElMessage.error('检测失败: ' + (predictRes.data.msg || '未能获取有效检测结果'));
+          console.error('检测失败，响应数据:', predictRes.data);
+          this.predictFileUrl = ''; // 清空URL
+          this.predictFileId = ''; // 清空ID
         }
+        // 新增：调用生产历史接口
+        const today = new Date();
+        const prodDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        await axios.get('/api/prodHistory/saveOrUpdateToday', {
+          params: {
+            prodDate,
+            hasDefect
+          }
+        });
       } catch (e) {
         console.error('检测请求发送失败:', e);
         ElMessage.error('检测请求发送失败: ' + (e.response?.data?.msg || e.message || '网络错误'));
+        this.predictFileUrl = ''; // 清空URL
+        this.predictFileId = ''; // 清空ID
       }
     },
   },

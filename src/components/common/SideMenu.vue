@@ -37,12 +37,6 @@
           </el-icon>
           <span>实时数据采集</span>
         </el-menu-item>
-        <el-menu-item class="submenu-item" index="/userList">
-          <el-icon>
-            <User/>
-          </el-icon>
-          <span>用户管理</span>
-        </el-menu-item>
       </el-sub-menu>
 
       <!-- 产品缺陷甄别菜单 -->
@@ -110,7 +104,6 @@ import {
   Search,
   SetUp,
   Upload,
-  User,
 } from '@element-plus/icons-vue';
 
 export default {
@@ -121,7 +114,7 @@ export default {
     logoTextShow: Boolean, // 是否显示logo文字
   },
   components: {
-    Picture, Upload, DataLine, User, Monitor, Search, Document, SetUp, Connection, Files, Cpu,
+    Picture, Upload, DataLine, Monitor, Search, Document, SetUp, Connection, Files, Cpu,
   },
 };
 </script>

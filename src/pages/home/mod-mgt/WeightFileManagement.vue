@@ -73,7 +73,7 @@ export default {
   },
   methods: {
     load() {
-      axios.get('/docker_files/data_record.csv', {responseType: 'text'}).then(res => {
+      axios.get('/api/csv/data_record', {responseType: 'text'}).then(res => {
         try {
           const data = res.data;
           const lines = data.split('\n').filter(line => line.trim() !== '');
@@ -209,8 +209,9 @@ export default {
     },
     selectWeight(row) {
       this.selectedRawId = row.raw_file_id;
-      // 可根据需要将ID存储到localStorage或emit事件
-      localStorage.setItem('selectedWeightRawId', this.selectedRawId);
+      // 将选中的权重文件ID保存到Vuex store
+      this.$store.commit('setSelectedWeightRawId', row.raw_file_id);
+      ElMessage.success(`已选择权重文件: ${row.file_real_name}`);
     },
   },
 };

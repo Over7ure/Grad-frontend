@@ -91,7 +91,7 @@ export default {
     currentFileUrl() {
       if (!this.currentFile) return '';
       // 构建当前文件的预览URL
-      return `/docker_files/${encodeURIComponent(this.currentFile.file_path)}`;
+      return `/api/image/view?path=${encodeURIComponent(this.currentFile.file_path)}`;
     },
   },
   components: {UploadFilled},
@@ -118,9 +118,19 @@ export default {
     this.load();
   },
   methods: {
+    // hashCode 计算函数
+    hashCode(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0; // 转为32位整数
+      }
+      return Math.abs(hash);
+    },
+
     // 直接使用 axios 读取本地 CSV 文件数据
     load() {
-      axios.get('/docker_files/data_record.csv', {responseType: 'text'}).then(res => {
+      axios.get('/api/csv/data_record', {responseType: 'text'}).then(res => {
         try {
           const data = res.data;
           const lines = data.split('\n').filter(line => line.trim() !== '');
@@ -272,6 +282,10 @@ export default {
     previewFile(file) {
       this.currentFile = file;
       this.previewVisible = true;
+      // 调试输出
+      console.log('预览文件:', file);
+      console.log('file_path:', file.file_path);
+      console.log('currentFileUrl:', this.currentFileUrl);
     },
 
     // 分页大小变化
@@ -344,13 +358,73 @@ export default {
       this.uploadFileList.forEach(file => {
         formData.append('files', file.raw);
       });
-      axios.post('/upload_files', formData, {
+      axios.post('http://localhost:5130/upload_files', formData, {
         headers: {'Content-Type': 'multipart/form-data'},
       }).then(response => {
         if (response.data.code === 200) {
           ElMessage.success('文件上传成功');
           this.dialogVisible = false;
           this.uploadFileList = [];
+          // 上传成功后，若有图片文件，批量存储图片信息
+          const uploadedFiles = response.data.data?.uploaded_files || [];
+          const imageExts = ['.png', '.jpg', '.jpeg'];
+          const imageList = [];
+          uploadedFiles.forEach(file => {
+            if (file.box_data) {
+              file.box_data.forEach(item => {
+                if (
+                  item.file_type === 'file' &&
+                  imageExts.some(ext => item.file_real_name.toLowerCase().endsWith(ext))
+                ) {
+                  // 提取 file_id 最后36位（UUID），去掉"-"，转hashCode，取正整数
+                  let picId = '';
+                  if (item.file_id && item.file_id.length >= 36) {
+                    let uuid = item.file_id.slice(-36);
+                    let uuidNoDash = uuid.replace(/-/g, '');
+                    picId = this.hashCode(uuidNoDash);
+                  }
+                  // 格式化上传时间，确保为 yyyy-MM-dd HH:mm:ss
+                  let uploadDate = item.file_create_time;
+                  if (uploadDate) {
+                    if (uploadDate.length === 12 && /^\d{12}$/.test(uploadDate)) {
+                      // 202505101247 => 2025-05-10 12:47:00
+                      uploadDate =
+                        uploadDate.substring(0, 4) + '-' +
+                        uploadDate.substring(4, 6) + '-' +
+                        uploadDate.substring(6, 8) + ' ' +
+                        uploadDate.substring(8, 10) + ':' +
+                        uploadDate.substring(10, 12) + ':00';
+                    } else if (!isNaN(Number(uploadDate)) && uploadDate.length > 12) {
+                      // 处理时间戳
+                      const dt = new Date(Number(uploadDate));
+                      uploadDate =
+                        dt.getFullYear() + '-' +
+                        String(dt.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(dt.getDate()).padStart(2, '0') + ' ' +
+                        String(dt.getHours()).padStart(2, '0') + ':' +
+                        String(dt.getMinutes()).padStart(2, '0') + ':' +
+                        String(dt.getSeconds()).padStart(2, '0');
+                    }
+                  }
+                  imageList.push({
+                    picId: picId,
+                    picName: item.file_real_name,
+                    picUrl: item.file_path,
+                    uploadDate: uploadDate
+                  });
+                }
+              });
+            }
+          });
+          if (imageList.length > 0) {
+            axios.post('/api/image/saveList', imageList)
+              .then(() => {
+                // 可选：提示保存成功
+              })
+              .catch(() => {
+                ElMessage.error('图片信息存储失败');
+              });
+          }
           // 上传成功后重新加载CSV数据
           this.load();
         } else {
@@ -426,4 +500,3 @@ export default {
   padding: 15px 0;
 }
 </style>
-

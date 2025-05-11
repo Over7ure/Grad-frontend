@@ -1,4 +1,4 @@
-import {createStore} from 'vuex';
+import { createStore } from 'vuex';
 
 // 创建Vuex存储
 const store = createStore({
@@ -10,6 +10,7 @@ const store = createStore({
 					? ''
 					: JSON.parse(window.localStorage.getItem('user' || '[]')).username,
 		},
+		selectedWeightRawId: null, // 新增：用于存储选中的权重文件原始ID
 	},
 	// 修改状态的方法
 	mutations: {
@@ -22,6 +23,9 @@ const store = createStore({
 			// 登出操作，清除用户信息和本地存储
 			state.user = '';
 			window.localStorage.removeItem('user');
+		},
+		setSelectedWeightRawId(state, weightId) { // 新增：用于设置选中的权重文件ID
+			state.selectedWeightRawId = weightId;
 		},
 	},
 });

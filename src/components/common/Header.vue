@@ -17,6 +17,7 @@
       </span>
       <template v-slot:dropdown>
         <el-dropdown-menu class="dropdown-menu">
+          <el-dropdown-item class="dropdown-item" @click="goUserList">用户管理</el-dropdown-item>
           <el-dropdown-item class="dropdown-item" @click="logout">退出</el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -50,6 +51,10 @@ export default {
     // 触发侧边栏折叠/展开事件
     collapse() {
       this.$emit('collapse');
+    },
+    // 跳转到用户管理页面
+    goUserList() {
+      this.$router.push('/userList');
     },
     // 触发退出登录事件
     logout() {

@@ -338,63 +338,6 @@ export default defineComponent({
       chartInstance.resize();
     };
 
-    // 状态持久化相关方法
-    const saveState = () => {
-      const state = {
-        currentStep: currentStep.value,
-        folderId: folderId.value,
-        trainSaveFolderId: trainSaveFolderId.value, // 新增: 保存 train_save_folder_id
-        yamlFileId: yamlFileId.value,
-        weightFileId: weightFileId.value, // 新增: 保存 weights_file_id
-        trainConfig: {...trainConfig},
-        trainLog: trainLog.value, // 新增：保存训练日志
-      };
-      localStorage.setItem('modelTrainingState', JSON.stringify(state));
-    };
-
-    const loadState = () => {
-      const savedState = localStorage.getItem('modelTrainingState');
-      if (savedState) {
-        try {
-          const state = JSON.parse(savedState);
-          currentStep.value = state.currentStep;
-          folderId.value = state.folderId;
-          trainSaveFolderId.value = state.trainSaveFolderId || ''; // 新增: 恢复 train_save_folder_id
-          yamlFileId.value = state.yamlFileId || '';
-          weightFileId.value = state.weightFileId || ''; // 新增: 恢复 weights_file_id
-
-          if (state.trainConfig) {
-            Object.assign(trainConfig, state.trainConfig);
-          }
-          if (state.trainLog) { // 新增：恢复训练日志
-            trainLog.value = state.trainLog;
-          }
-
-          return true;
-        } catch (e) {
-          console.error('Error parsing saved training state:', e);
-          // 如果解析失败，清除无效状态
-          clearState();
-          return false;
-        }
-      }
-      return false;
-    };
-
-    const clearState = () => {
-      localStorage.removeItem('modelTrainingState');
-      // 状态重置由 resetTraining 处理
-    };
-
-    // 监听关键状态变化
-    watch([currentStep, folderId, yamlFileId, trainSaveFolderId, weightFileId], () => { // 新增: 监听 trainFolderId 和 weightFileId 变化
-      // 只有当不是初始状态时才保存
-      if (currentStep.value > 0 || folderId.value || yamlFileId.value || trainSaveFolderId.value ||
-          weightFileId.value) {
-        saveState();
-      }
-    }, {deep: true}); // 添加 deep: true 以监听 trainConfig 的变化
-
     // 加载状态管理
     const loading = reactive({
       creating: false,
@@ -413,7 +356,7 @@ export default defineComponent({
         loading.message = '正在创建训练任务...';
 
         const formData = new FormData();
-        return axios.post('/create_train', formData, {
+        return axios.post('http://localhost:5130/create_train', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -423,14 +366,12 @@ export default defineComponent({
             trainSaveFolderId.value = response.data.data.train_save_folder_id;
             ElMessage.success('训练任务创建成功');
             currentStep.value = 1; // 进入上传数据集步骤
-            saveState(); // 保存当前状态
             return true;
           } else {
             throw new Error(response.data.msg || '创建训练任务失败');
           }
         }).catch(error => {
           ElMessage.error(error.message || '请求失败');
-          clearState(); // 添加: 发生错误时清除状态
           return false;
         }).finally(() => {
           loading.creating = false;
@@ -462,7 +403,7 @@ export default defineComponent({
             }
           }
 
-          return axios.post('/upload_datasets', formData, {
+          return axios.post('http://localhost:5130/upload_datasets', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
@@ -475,14 +416,12 @@ export default defineComponent({
               }
               ElMessage.success('数据集上传成功');
               currentStep.value = 2; // 进入训练配置步骤
-              saveState(); // 保存当前状态
               return true;
             } else {
               throw new Error(response.data.msg || '数据集上传失败');
             }
           }).catch(error => {
             ElMessage.error('上传失败: ' + (error.response?.data?.msg || error.message || '未知错误'));
-            clearState(); // 添加: 发生错误时清除状态
             return false;
           }).finally(() => {
             loading.uploading = false;
@@ -531,9 +470,8 @@ export default defineComponent({
 
           ElMessage.success('启动训练成功');
           currentStep.value = 4; // 进入训练进行中状态
-          saveState();
 
-          return axios.post('/start_train', formData, {
+          return axios.post('http://localhost:5130/start_train', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
@@ -544,7 +482,6 @@ export default defineComponent({
 
               ElMessage.success('训练已完成');
               currentStep.value = 5;
-              saveState(); // 保存当前状态 (包含新的 ID)
               return true;
             } else {
               throw new Error(response.data.msg || '训练启动失败');
@@ -588,7 +525,6 @@ export default defineComponent({
       trainConfigForm.value.validate((valid) => {
         if (valid) {
           currentStep.value = 3; // 进入确认步骤
-          saveState(); // 保存当前状态
         }
       });
     };
@@ -610,8 +546,6 @@ export default defineComponent({
         device: '', // 重置为''
       });
 
-      // 清除保存的状态
-      clearState();
       trainLog.value = null;
     };
 
@@ -644,12 +578,11 @@ export default defineComponent({
       }
       const formData = new FormData();
       formData.append('train_folder_id', trainSaveFolderId.value);
-      axios.post('/train_log', formData, {
+      axios.post('http://localhost:5130/train_log', formData, {
         headers: {'Content-Type': 'multipart/form-data'},
       }).then(res => {
         if (res.data && res.data.code === 200) {
           trainLog.value = res.data.data;
-          saveState();
           ElMessage.success('训练日志已获取');
         } else {
           ElMessage.error(res.data.msg || '获取训练日志失败');
@@ -666,7 +599,6 @@ export default defineComponent({
 
     // 窗口自适应
     onMounted(() => {
-      loadState();
       window.addEventListener('resize', () => {
         if (chartInstance) chartInstance.resize();
       });
