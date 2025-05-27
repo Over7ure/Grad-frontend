@@ -3,7 +3,7 @@ import ElementUI from 'element-plus';
 import 'element-plus/theme-chalk/index.css';
 import {createApp} from 'vue';
 import App from './App.vue';
-import './assets/global.css';
+import '@/assets/global.css';
 import router from './router/routes';
 import store from './store';
 

@@ -97,19 +97,19 @@
               <el-input v-model="trainConfig.pr_name" placeholder="请输入项目名称"/>
             </el-form-item>
             <el-form-item label="批次大小" prop="batch_size">
-              <el-input v-model="trainConfig.batch_size"/>
+              <el-input v-model="trainConfig.batch_size" placeholder="default: 32"/>
             </el-form-item>
             <el-form-item label="训练周期" prop="epochs">
               <el-input v-model="trainConfig.epochs"/>
             </el-form-item>
             <el-form-item label="图片尺寸" prop="image_size">
-              <el-input v-model="trainConfig.image_size"/>
+              <el-input v-model="trainConfig.image_size" placeholder="default: 512*512"/>
             </el-form-item>
             <el-form-item label="学习率" prop="learning_rate">
-              <el-input v-model="trainConfig.learning_rate"/>
+              <el-input v-model="trainConfig.learning_rate" placeholder="default: 0.001"/>
             </el-form-item>
             <el-form-item label="训练设备" prop="device">
-              <el-input v-model="trainConfig.device"/>
+              <el-input v-model="trainConfig.device" placeholder="default: cuda"/>
             </el-form-item>
           </div>
           <div class="action-row">
@@ -160,7 +160,12 @@
       <div class="card-content">
         <div class="training-status">
           <div v-if="trainLog && trainLog.last_epoch" class="train-log-panel">
-            <h4>最新训练日志</h4>
+            <div class="train-log-header">
+              <h4>最新训练日志</h4>
+              <el-button :disabled="!trainLog" size="small" type="success" @click="exportTrainLogJson">
+                导出JSON
+              </el-button>
+            </div>
             <el-descriptions :column="2" border>
               <el-descriptions-item label="当前Epoch">{{ trainLog.last_epoch.epoch }}</el-descriptions-item>
               <el-descriptions-item label="训练耗时">{{ trainLog.last_epoch.time }}s</el-descriptions-item>
@@ -266,6 +271,52 @@ export default defineComponent({
     // 新增：echarts实例和图表数据
     const chartRef = ref(null);
     let chartInstance = null;
+
+    // 新增：状态持久化
+    const STORAGE_KEY = 'modelTrainingState';
+    // 恢复状态
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const s = JSON.parse(saved);
+        if (s.currentStep !== undefined) currentStep.value = s.currentStep;
+        if (s.folderId) folderId.value = s.folderId;
+        if (s.yamlFileId) yamlFileId.value = s.yamlFileId;
+        if (s.trainSaveFolderId) trainSaveFolderId.value = s.trainSaveFolderId;
+        if (s.weightFileId) weightFileId.value = s.weightFileId;
+        if (s.trainConfig) Object.assign(trainConfig, s.trainConfig);
+        if (Array.isArray(s.datasetFileList)) datasetFileList.value = s.datasetFileList;
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    // 监听关键状态变化并保存
+    watch(
+        [
+          currentStep,
+          folderId,
+          yamlFileId,
+          trainSaveFolderId,
+          weightFileId,
+          trainConfig,
+          datasetFileList,
+        ],
+        () => {
+          localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify({
+                currentStep: currentStep.value,
+                folderId: folderId.value,
+                yamlFileId: yamlFileId.value,
+                trainSaveFolderId: trainSaveFolderId.value,
+                weightFileId: weightFileId.value,
+                trainConfig: {...trainConfig},
+                datasetFileList: datasetFileList.value,
+              }),
+          );
+        },
+        {deep: true},
+    );
 
     // 处理所有epoch日志为图表数据
     const getEpochChartData = () => {
@@ -547,6 +598,8 @@ export default defineComponent({
       });
 
       trainLog.value = null;
+      // 新增：清除本地存储
+      localStorage.removeItem(STORAGE_KEY);
     };
 
     const createTraining = (event) => {
@@ -567,6 +620,25 @@ export default defineComponent({
     const startTraining = (event) => {
       if (event) event.preventDefault();
       return api.startTraining(trainConfig);
+    };
+
+    // 新增：导出训练日志为 JSON
+    const exportTrainLogJson = () => {
+      if (!trainLog.value) {
+        ElMessage.warning('暂无训练日志可导出');
+        return;
+      }
+      const dataStr = JSON.stringify(trainLog.value, null, 2);
+      const blob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `train_log_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      ElMessage.success('训练日志已导出为JSON');
     };
 
     // 新增：查看当前任务训练状态
@@ -623,6 +695,7 @@ export default defineComponent({
       validateAndContinue,
       startTraining,
       resetTraining,
+      exportTrainLogJson,
       viewCurrentTrainStatus,
       chartRef,
     };
@@ -661,6 +734,12 @@ export default defineComponent({
   margin-bottom: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -693,6 +772,11 @@ export default defineComponent({
   justify-content: flex-end;
   margin-top: 20px;
   gap: 12px;
+}
+
+.action-row .el-button {
+  min-width: 120px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .upload-container {
@@ -786,6 +870,13 @@ export default defineComponent({
 
 .train-log-panel .el-descriptions {
   margin-top: 8px;
+}
+
+.train-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .train-log-chart {

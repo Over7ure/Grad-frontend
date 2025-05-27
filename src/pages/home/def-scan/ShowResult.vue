@@ -11,6 +11,17 @@
           </option>
         </select>
       </div>
+      <div class="export-buttons">
+        <el-dropdown @command="handleExport">
+          <el-button size="small" type="primary">
+            导出结果<i class="el-icon-arrow-down el-icon--right"></i>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-item command="daily">按日导出</el-dropdown-item>
+            <el-dropdown-item command="monthly">按月导出</el-dropdown-item>
+          </template>
+        </el-dropdown>
+      </div>
     </div>
 
     <div class="content">
@@ -52,7 +63,7 @@ export default {
   data() {
     return {
       prodDataList: [],
-      selectedDate: '',
+      selectedDate: '*Overall_history', // 默认选择总生产数据
       barChart: null,
       currentData: null,
     };
@@ -60,18 +71,16 @@ export default {
   methods: {
     fetchData() {
       this.$axios.get('/api/prodHistory/findAll').then(response => {
-        this.prodDataList = response.data;
+        // 按日期升序排序 prodDataList
+        this.prodDataList = response.data.sort((a, b) => a.prodDate.localeCompare(b.prodDate));
         // 为每条数据计算良品率
         this.prodDataList.forEach(item => {
           item.yieldRate = item.prodNum > 0 ?
               ((item.prodNum - item.defectNum) / item.prodNum * 100) : 0;
         });
-
-        if (this.prodDataList.length > 0) {
-          this.selectedDate = this.prodDataList[0].prodDate;
-          this.currentData = this.prodDataList[0];
-          this.updateCharts();
-        }
+        // 默认选中总生产数据
+        this.selectedDate = '*Overall_history';
+        this.handleDateChange();
       });
     },
     handleDateChange() {
@@ -153,6 +162,35 @@ export default {
         this.barChart.resize();
       });
     },
+    // 统一导出入口，根据 command 执行
+    handleExport(command) {
+      if (!this.prodDataList.length) {
+        this.$message.warning('暂无数据可导出');
+        return;
+      }
+      let payload, filename;
+      if (command === 'daily') {
+        payload = this.prodDataList;
+        filename = `prod_daily.json`;
+      } else if (command === 'monthly') {
+        payload = this.prodDataList.reduce((acc, item) => {
+          const month = item.prodDate.slice(0, 7);
+          (acc[month] || (acc[month] = [])).push(item);
+          return acc;
+        }, {});
+        filename = `prod_monthly.json`;
+      }
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.$message.success(`已导出${command === 'daily' ? '按日' : '按月'}结果`);
+    },
   },
   mounted() {
     this.initCharts();
@@ -175,43 +213,75 @@ export default {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px 16px 24px 16px;
   background-color: #f5f7fa;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.04);
 }
 
 .header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #222;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
 .date-selector {
   display: flex;
   align-items: center;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 12px;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.03);
+}
+
+.date-selector span {
+  font-size: 15px;
+  color: #666;
 }
 
 .date-selector select {
-  padding: 8px 12px;
+  padding: 7px 14px;
   border-radius: 4px;
   border: 1px solid #dcdfe6;
   margin-left: 10px;
   outline: none;
+  font-size: 15px;
+  background: #f8fafc;
+  transition: border 0.2s;
+}
+
+.date-selector select:focus {
+  border: 1.5px solid #409eff;
+}
+
+.export-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .card {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  /* 保证卡片宽度自适应父容器 */
+  border-radius: 10px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.07);
+  padding: 24px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -222,65 +292,73 @@ export default {
   font-size: 18px;
   margin-bottom: 20px;
   text-align: center;
+  font-weight: 500;
 }
 
 .data-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 28px;
 }
 
 .data-item {
   text-align: center;
-  padding: 15px;
-  border-radius: 6px;
+  padding: 18px;
+  border-radius: 8px;
   background-color: #f0f2f5;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.03);
 }
 
 .data-value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   color: #409eff;
-  margin-bottom: 5px;
+  margin-bottom: 7px;
 }
 
 .data-label {
-  font-size: 14px;
+  font-size: 15px;
   color: #606266;
 }
 
 .charts-container {
-  /* 让统计卡片与概览卡片同宽 */
   width: 100%;
-  /* 移除grid布局 */
   display: block;
   margin: 0;
   padding: 0;
 }
 
 .chart-box {
-  height: 300px;
+  height: 320px;
   width: 100%;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .result-container {
+    padding: 12px 2vw 12px 2vw;
+  }
   .header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
 
-  .date-selector {
-    margin-top: 10px;
+  .content {
+    gap: 14px;
   }
-
   .data-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
-  .charts-container {
-    /* 保持移动端同样效果 */
-    width: 100%;
-    display: block;
+  .card {
+    padding: 14px;
+  }
+
+  .chart-box {
+    height: 220px;
   }
 }
 </style>
+
+

@@ -69,12 +69,6 @@
           </el-icon>
           <span>模型管理</span>
         </template>
-        <el-menu-item class="submenu-item" index="/modelManagement">
-          <el-icon>
-            <Connection/>
-          </el-icon>
-          <span>算法模型管理</span>
-        </el-menu-item>
         <el-menu-item class="submenu-item" index="/weightFileManagement">
           <el-icon>
             <Files/>
@@ -94,7 +88,6 @@
 
 <script>
 import {
-  Connection,
   Cpu,
   DataLine,
   Document,
@@ -114,7 +107,7 @@ export default {
     logoTextShow: Boolean, // 是否显示logo文字
   },
   components: {
-    Picture, Upload, DataLine, Monitor, Search, Document, SetUp, Connection, Files, Cpu,
+    Picture, Upload, DataLine, Monitor, Search, Document, SetUp, Files, Cpu,
   },
 };
 </script>

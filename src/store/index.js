@@ -11,6 +11,7 @@ const store = createStore({
 					: JSON.parse(window.localStorage.getItem('user' || '[]')).username,
 		},
 		selectedWeightRawId: null, // 新增：用于存储选中的权重文件原始ID
+		trainingState: null, // 新增：模型训练状态
 	},
 	// 修改状态的方法
 	mutations: {
@@ -27,7 +28,14 @@ const store = createStore({
 		setSelectedWeightRawId(state, weightId) { // 新增：用于设置选中的权重文件ID
 			state.selectedWeightRawId = weightId;
 		},
+		setTrainingState(state, trainingState) { // 新增：设置训练状态
+			state.trainingState = trainingState;
+		},
+		clearTrainingState(state) { // 新增：清除训练状态
+			state.trainingState = null;
+		},
 	},
 });
 
 export default store;
+

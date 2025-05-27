@@ -61,15 +61,6 @@ const routes = [
 					requireAuth: true,
 				},
 			},
-			// 模型管理模块
-			{
-				path: '/modelManagement',
-				name: '算法模型管理',
-				component: () => import('@/pages/home/mod-mgt/ModelManagement.vue'),
-				meta: {
-					requireAuth: true,
-				},
-			},
 			{
 				path: '/weightFileManagement',
 				name: '权重文件管理',
@@ -84,6 +75,7 @@ const routes = [
 				component: () => import('@/pages/home/mod-mgt/ModelTraining.vue'),
 				meta: {
 					requireAuth: true,
+					keepAlive: true,
 				},
 			},
 		],
